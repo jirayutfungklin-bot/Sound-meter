@@ -26,12 +26,16 @@ button:disabled{opacity:.45}
 canvas{width:100%;display:block;touch-action:none}
 table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;font-variant-numeric:tabular-nums}
 .mt{table-layout:fixed}.mt td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mt th{font-size:11px;white-space:normal;line-height:1.2;vertical-align:bottom}.mt td:nth-child(5),.mt th:nth-child(5),.mt td:nth-child(6),.mt th:nth-child(6){text-align:center}
-.mt tr.hd th{padding-top:12px}.hm{color:#7c3aed}.big,.jt{font-variant-numeric:tabular-nums}th,td{padding:4px 3px;text-align:right;border-bottom:1px solid var(--bd)}
+.mt tr.hd th{padding-top:12px}.hm{color:#7c3aed}.mt td.hm{white-space:normal;font-size:12px;line-height:1.2}.mt td.wr{white-space:normal;line-height:1.25}.big,.jt{font-variant-numeric:tabular-nums}th,td{padding:4px 3px;text-align:right;border-bottom:1px solid var(--bd)}
 th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:500}
 .ok{color:var(--ok);font-weight:600}.ng{color:var(--ng);font-weight:700}.warn{color:var(--wa)}
 .jt{width:100%;margin-top:10px;font-size:14px}.jt td{padding:6px 3px}.jt td:nth-child(2),.jt td:nth-child(3){text-align:right}.jt td:last-child{text-align:center;width:52px}
 .pill{display:inline-block;min-width:40px;padding:2px 8px;border-radius:6px;font-weight:700}.pill.ok{background:#dcfce7}.pill.ng{background:#fee2e2}
-.seg{display:flex;gap:4px;margin:6px 0}#sComp{font-size:16px}.seg button{flex:1;padding:6px 0;font-size:13px}
+.seg{display:flex;gap:4px;margin:6px 0}
+.src{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0 6px}.src label{display:flex;flex-direction:column;font-size:11px;color:var(--mu);gap:2px}
+.src input,.src select{font-size:16px;padding:5px 6px;width:100%}.leg{font-size:11px;color:var(--mu);margin-top:6px;line-height:1.5}
+.cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:6px}.cmp label{display:flex;flex-direction:column;font-size:11px;color:var(--mu);gap:2px}.cmp select,.cmp input{font-size:15px;padding:5px;width:100%}
+.k-move{color:#7c3aed;font-weight:600}.k-fixed{color:#b45309;font-weight:600}.k-gone{color:#6b7280}.k-new{color:#dc2626;font-weight:600}.seg button{flex:1;padding:6px 0;font-size:13px}
 .files div{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bd)}.files span{flex:1;word-break:break-all}
 .files button{padding:4px 8px;font-size:12px}
 .set label{display:flex;justify-content:space-between;align-items:center;margin:6px 0;gap:8px}.set input{width:90px;text-align:right}
@@ -68,7 +72,15 @@ summary{font-weight:600;cursor:pointer}
 <section class="card">
   <div class="lbl">FFT · 800 lines · 12.5 Hz · dB(A)</div>
   <div class="seg" id="zoom"><button data-z="1000">0–1k</button><button data-z="2000">0–2k</button><button data-z="5000">0–5k</button><button data-z="10000">0–10k</button></div>
-  <div class="row" style="margin-bottom:4px"><span class="lbl" style="color:#7c3aed">ฮาร์โมนิกคอมเพรสเซอร์ Hz</span><input id="sComp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="เช่น 41" style="width:90px"><span class="sub" style="margin:0">ว่าง = ปิด</span></div>
+  <div class="lbl" style="margin-top:4px">แหล่งเสียงที่รู้ (ใส่เท่าที่รู้ · ว่าง = ไม่ใช้)</div>
+  <div class="src">
+    <label><span style="color:#7c3aed">C · Comp Hz</span><input id="sComp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="41"></label>
+    <label><span style="color:#059669">F · พัดลม rpm</span><input id="sFanRpm" type="number" inputmode="decimal" step="1" min="0" placeholder="750"></label>
+    <label><span style="color:#059669">F · จำนวนใบ</span><input id="sFanBl" type="number" inputmode="numeric" step="1" min="0" placeholder="3"></label>
+    <label><span style="color:#4b5563">E · ไฟเลี้ยง Hz</span><select id="sSup"><option value="0">–</option><option value="50">50</option><option value="60">60</option></select></label>
+    <label><span style="color:#dc2626">I · Carrier kHz</span><input id="sCar" type="number" inputmode="decimal" step="0.1" min="0" placeholder="–"></label>
+    <label><span>BPF พัดลม</span><input id="sBpf" disabled placeholder="–"></label>
+  </div>
   <canvas id="cF"></canvas>
   <div id="cur" class="sub">แตะ/ลากบนกราฟเพื่ออ่านค่า</div>
 </section>
@@ -90,6 +102,15 @@ summary{font-weight:600;cursor:pointer}
       <button id="bDelAll">ลบทั้งหมด</button>
     </div>
     <div id="fsInfo" class="sub"></div>
+    <details style="margin-top:10px"><summary>เทียบ 2 สภาวะ (แยกต้นเหตุ)</summary>
+      <div class="sub">วัดจุดเดิม 2 ครั้งที่ความถี่คอมเพรสเซอร์ต่างกัน (ควรต่าง ≥ 15%) แล้วเลือกมาเทียบ: peak ที่ขยับตามคือชิ้นส่วนหมุน peak ที่อยู่กับที่คือเรโซแนนซ์/โครงสร้าง/ไฟ/อินเวอร์เตอร์</div>
+      <div class="cmp">
+        <label>สภาวะ A<select id="cA"></select></label><label>Comp Hz ของ A<input id="cfA" type="number" inputmode="decimal" step="0.1"></label>
+        <label>สภาวะ B<select id="cB"></select></label><label>Comp Hz ของ B<input id="cfB" type="number" inputmode="decimal" step="0.1"></label>
+      </div>
+      <div class="row" style="margin-top:8px"><button id="bCmp" class="pri">วิเคราะห์</button></div>
+      <div id="cmpOut"></div>
+    </details>
   </details>
 </section>
 
@@ -365,11 +386,20 @@ function analyze(raw, o) {
     .map(x => ({ ...x, hz: x.i * DF, oaPk: oa - x.db, ok: (oa - x.db) >= o.oaPkTh }));
 
   // Peak Protrusion (Delta 3Mt.): peak − mean(dB) of 3 neighbouring peaks each side
-  const prot = [];
-  for (let j = 3; j < pk.length - 3; j++) {
-    let s = 0;
-    for (let k = 1; k <= 3; k++) s += L[pk[j - k]] + L[pk[j + k]];
-    prot.push({ i: pk[j], db: L[pk[j]] - s / 6 });
+  const prot = [], peaks = [];
+  for (let j = 0; j < pk.length; j++) {
+    let pr = null;
+    if (j >= 3 && j < pk.length - 3) {
+      let s = 0;
+      for (let k = 1; k <= 3; k++) s += L[pk[j - k]] + L[pk[j + k]];
+      pr = L[pk[j]] - s / 6;
+      prot.push({ i: pk[j], db: pr });
+    }
+    // loose prominence (uses whatever neighbours exist, up to 3 each side) — for source comparison only
+    const nb = [];
+    for (let k = 1; k <= 3; k++) { if (j - k >= 0) nb.push(L[pk[j - k]]); if (j + k < pk.length) nb.push(L[pk[j + k]]); }
+    const loose = nb.length >= 2 ? L[pk[j]] - nb.reduce((x, y) => x + y, 0) / nb.length : null;
+    peaks.push({ i: pk[j], hz: pk[j] * DF, db: L[pk[j]], prot: pr, loose });
   }
   const protTop = prot.sort((a, b) => b.db - a.db).slice(0, 3)
     .map(x => ({ ...x, hz: x.i * DF, ok: x.db <= o.protTh }));
@@ -393,7 +423,52 @@ function analyze(raw, o) {
   const oaMaxOk = !(o.oaMaxTh > 0) || oaMax >= o.oaMaxTh;
   const oaPkOk = fftTop.every(x => x.ok), protOk = protTop.every(x => x.ok);
   const ng = !oaPkOk || !protOk || !oaMaxOk;
-  return { L, oa, rawOA, bgOA, weak, fftTop, protTop, cpb, cpbMax, oaMax, oaPkOk, protOk, oaMaxOk, ng };
+  return { L, oa, rawOA, bgOA, weak, fftTop, protTop, peaks, cpb, cpbMax, oaMax, oaPkOk, protOk, oaMaxOk, ng };
+}
+
+// Known-source frequencies -> tags like C4× (compressor), F2× (fan BPF), E3× (n × 2·supply), I1× (inverter carrier)
+function sourceFreqs(src) {
+  const out = [];
+  if (src.comp > 0) out.push({ code: 'C', f: src.comp, maxN: 40, tolBins: 0 });
+  if (src.fanRpm > 0 && src.fanBl > 0) out.push({ code: 'F', f: src.fanRpm / 60 * src.fanBl, maxN: 10, tolBins: 0 });
+  if (src.supply > 0) out.push({ code: 'E', f: 2 * src.supply, maxN: 20, tolBins: 0 });
+  if (src.carrier > 0) out.push({ code: 'I', f: src.carrier * 1000, maxN: 3, tolBins: 3 });
+  return out;
+}
+function sourceTags(hz, src) {
+  const out = [];
+  sourceFreqs(src).forEach(s => {
+    const n = Math.round(hz / s.f);
+    const tol = DF / 2 + n * s.f * 0.003 + s.tolBins * DF;
+    if (n >= 1 && n <= s.maxN && Math.abs(hz - n * s.f) <= tol) out.push(s.code + n + '×');
+  });
+  return out;
+}
+
+// Two operating conditions: peaks that move with the compressor frequency vs peaks that stay put
+function compareConditions(aA, aB, fA, fB) {
+  const ratio = fB / fA;
+  const sig = an => an.peaks.filter(p => p.loose !== null && p.loose >= 3).sort((x, y) => y.db - x.db).slice(0, 10);
+  const near = (an, hz, w) => {
+    let best = null;
+    an.peaks.forEach(p => { if (Math.abs(p.hz - hz) <= w && (p.loose === null || p.loose >= 1.5) && (!best || p.db > best.db)) best = p; });
+    return best;
+  };
+  const rows = sig(aA).map(p => {
+    const order = p.hz / fA, moved = p.hz * ratio, shift = Math.abs(moved - p.hz);
+    const wMove = DF + order * Math.abs(fB) * 0.004;
+    const fixed = near(aB, p.hz, DF), mv = near(aB, moved, wMove);
+    let kind, q = null;
+    if (shift < 2 * DF) { kind = 'na'; q = fixed || mv; }
+    else if (mv && !fixed) { kind = 'move'; q = mv; }
+    else if (fixed && !mv) { kind = 'fixed'; q = fixed; }
+    else if (fixed && mv) { kind = 'both'; q = fixed.db >= mv.db ? fixed : mv; }
+    else kind = 'gone';
+    return { hz: p.hz, db: p.db, order, kind, bHz: q ? q.hz : null, bDb: q ? q.db : null };
+  });
+  const added = sig(aB).filter(p => !near(aA, p.hz, DF) && !near(aA, p.hz / ratio, DF + (p.hz / fB) * Math.abs(fA) * 0.004))
+    .map(p => ({ hz: null, db: null, kind: 'new', bHz: p.hz, bDb: p.db, order: p.hz / fB }));
+  return rows.concat(added);
 }
 // </ANALYSIS>
 
@@ -403,16 +478,13 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('sm_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('sm_' + k, JSON.stringify(v)); } catch (e) {} }
 };
-const cfg = Object.assign({ protTh: 15, oaPkTh: 6, oaMaxTh: 6, dist: 1, comp: 0, useBg: true, zoom: 10000 }, store.get('cfg', {}));
+const cfg = Object.assign({ protTh: 15, oaPkTh: 6, oaMaxTh: 6, dist: 1, comp: 0, fanRpm: 0, fanBl: 0, supply: 0, carrier: 0, useBg: true, zoom: 10000 }, store.get('cfg', {}));
 const S = { view: 'live', live: null, cur: null, curName: '', bg: store.get('bg', null), bgName: store.get('bgName', ''),
             files: [], off: 0, cursor: -1, lastA: null, measuring: false, ws: null };
 
 function opts() { return { useBg: cfg.useBg, bg: S.bg, dist: cfg.dist, protTh: cfg.protTh, oaPkTh: cfg.oaPkTh, oaMaxTh: cfg.oaMaxTh }; }
-function harm(hz) {
-  if (!cfg.comp || cfg.comp <= 0) return '';
-  const n = Math.round(hz / cfg.comp);
-  return (n >= 1 && n <= 40 && Math.abs(hz - n * cfg.comp) <= DF / 2) ? n + '×' : '';
-}
+function srcCfg() { return { comp: cfg.comp, fanRpm: cfg.fanRpm, fanBl: cfg.fanBl, supply: cfg.supply, carrier: cfg.carrier }; }
+function harm(hz) { return sourceTags(hz, srcCfg()).join('/'); }
 const f1 = v => (v <= -98 ? '--' : v.toFixed(1));
 const fHz = hz => hz >= 1000 ? parseFloat((hz / 1000).toFixed(3)) + 'k' : String(hz);
 
@@ -463,13 +535,13 @@ function drawTables(a) {
   const hc = hz => '<td class="hm">' + (harm(hz) || '–') + '</td>';
   const name = ['1st', '2nd (Ref.)', '3rd (Ref.)'];
   let h = '<table class="mt">' + COLS +
-    '<tr><th>FFT Max</th><th>dB</th><th>Hz</th><th>OA−Peak</th><th>ผล</th><th>Comp</th></tr>';
+    '<tr><th>FFT Max</th><th>dB</th><th>Hz</th><th>OA−Peak</th><th>ผล</th><th>แหล่ง</th></tr>';
   for (let k = 0; k < 3; k++) {
     const x = a.fftTop[k];
     h += x ? '<tr>' + cell(name[k]) + cell(x.db.toFixed(1)) + cell(x.hz.toFixed(1)) + cell(x.oaPk.toFixed(1)) + res(x.ok) + hc(x.hz) + '</tr>'
            : '<tr>' + cell(name[k]) + '<td colspan="5"></td></tr>';
   }
-  h += '<tr class="hd"><th>Peak Protrusion</th><th>dB</th><th>Hz</th><th></th><th>ผล</th><th>Comp</th></tr>';
+  h += '<tr class="hd"><th>Peak Protrusion</th><th>dB</th><th>Hz</th><th></th><th>ผล</th><th>แหล่ง</th></tr>';
   for (let k = 0; k < 3; k++) {
     const x = a.protTop[k];
     h += x ? '<tr>' + cell((k + 1) + ' (3Mt.)') + cell(x.db.toFixed(1)) + cell(x.hz.toFixed(1)) + '<td></td>' + res(x.ok) + hc(x.hz) + '</tr>'
@@ -477,7 +549,8 @@ function drawTables(a) {
   }
   h += '<tr class="hd"><th>CPB Max</th><th>dB</th><th>Hz</th><th>OA−Max</th><th>ผล</th><th></th></tr>' +
        '<tr>' + cell('1/3 oct') + cell(a.cpbMax.db.toFixed(1)) + cell(a.cpbMax.fn.toFixed(1)) + cell(a.oaMax.toFixed(1)) +
-       (cfg.oaMaxTh > 0 ? res(a.oaMaxOk) : '<td class="hm">–</td>') + '<td></td></tr></table>';
+       (cfg.oaMaxTh > 0 ? res(a.oaMaxOk) : '<td class="hm">–</td>') + '<td></td></tr></table>' +
+       (sourceFreqs(srcCfg()).length ? '<div class="leg">แหล่ง: C = คอมเพรสเซอร์ · F = พัดลม (BPF) · E = ไฟเลี้ยง (n × 2f) · I = อินเวอร์เตอร์ (carrier) · – = ไม่ตรงแหล่งที่รู้ → สงสัยเรโซแนนซ์/โครงสร้าง/อื่นๆ</div>' : '<div class="leg">ใส่ Comp Hz / พัดลม / ไฟเลี้ยง / carrier ที่กราฟ FFT เพื่อให้ระบุแหล่งเสียงของแต่ละ peak</div>');
   $('tbls').innerHTML = h;
 }
 
@@ -508,19 +581,22 @@ function drawFFT(a) {
   g.textAlign = 'center';
   const step = fmax / 10;
   for (let f = 0; f <= fmax; f += step) { g.beginPath(); g.moveTo(X(f), m.t); g.lineTo(X(f), h - m.b); g.stroke(); g.fillText(f ? fHz(f) : '0', X(f), h - 6); }
-  if (cfg.comp > 0 && X(cfg.comp) - X(0) < 3) {
-    g.fillStyle = '#7c3aed'; g.textAlign = 'left'; g.fillText('กด 0–1k เพื่อดูเส้นฮาร์โมนิก', m.l + 4, m.t + 8); g.textAlign = 'center';
-  } else if (cfg.comp > 0) {
-    // harmonic lines 1×..40× of compressor frequency; labels when there is room
-    const sp = X(cfg.comp) - X(0), every = sp >= 22 ? 1 : sp >= 11 ? 2 : sp >= 5 ? 5 : 10;
-    g.save(); g.setLineDash([4, 3]); g.strokeStyle = 'rgba(124,58,237,.6)'; g.fillStyle = '#7c3aed'; g.lineWidth = 1;
-    for (let n = 1; n <= 40 && n * cfg.comp <= fmax; n++) {
-      const x = X(n * cfg.comp);
-      { g.beginPath(); g.moveTo(x, m.t + 10); g.lineTo(x, h - m.b); g.stroke(); }
-      if (n % every === 0 || n === 1) g.fillText(n + '×', x, m.t + 8);
+  // dashed lines for every known source (C purple, F green, E grey, I red); labels where there is room
+  const SRC_COL = { C: '#7c3aed', F: '#059669', E: '#6b7280', I: '#dc2626' };
+  let hidden = false;
+  sourceFreqs(srcCfg()).forEach((sf, si) => {
+    const sp = X(sf.f) - X(0);
+    if (sp < 3) { hidden = true; return; }
+    const every = sp >= 22 ? 1 : sp >= 11 ? 2 : sp >= 5 ? 5 : 10;
+    g.save(); g.setLineDash([4, 3]); g.strokeStyle = SRC_COL[sf.code]; g.globalAlpha = 0.6; g.lineWidth = 1;
+    for (let n = 1; n <= sf.maxN && n * sf.f <= fmax; n++) {
+      const x = X(n * sf.f);
+      g.beginPath(); g.moveTo(x, m.t + 10 + si * 10); g.lineTo(x, h - m.b); g.stroke();
+      if (n % every === 0 || n === 1) { g.globalAlpha = 1; g.fillStyle = SRC_COL[sf.code]; g.fillText(sf.code + n, x, m.t + 8 + si * 10); g.globalAlpha = 0.6; }
     }
     g.restore();
-  }
+  });
+  if (hidden) { g.fillStyle = '#7c3aed'; g.textAlign = 'left'; g.fillText('ซูมเข้าเพื่อดูเส้นแหล่งเสียง', m.l + 4, h - m.b - 6); g.textAlign = 'center'; }
   g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
   g.strokeStyle = '#1e3a8a'; g.lineWidth = 1.2; g.beginPath();
   for (let i = 0; i <= nVis; i++) { const x = X(i * DF), y = Y(a.L[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); }
@@ -544,7 +620,7 @@ function drawFFT(a) {
     const i = S.cursor, x = X(i * DF);
     g.strokeStyle = '#ef4444'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, m.t); g.lineTo(x, h - m.b); g.stroke();
     const hm = harm(i * DF);
-    $('cur').textContent = (i * DF) + ' Hz : ' + a.L[i].toFixed(1) + ' dB(A)' + (hm ? '  (' + hm + ' comp.)' : '');
+    $('cur').textContent = (i * DF) + ' Hz : ' + a.L[i].toFixed(1) + ' dB(A)' + (hm ? '  (' + hm + ')' : '');
   }
   document.querySelectorAll('#zoom button').forEach(b => b.classList.toggle('sel', +b.dataset.z === fmax));
 }
@@ -653,6 +729,7 @@ async function loadFiles() {
     const fl = await (await fetch('/api/files')).json();
     fl.sort((a, b) => a.n < b.n ? -1 : 1);
     S.files = fl;
+    fillCmpSelects();
     const sel = store.get('sel', {});
     $('files').innerHTML = fl.length ? fl.map(f => {
       const isBg = f.n.indexOf('_BG') > 0;
@@ -710,12 +787,14 @@ $('bSum').onclick = async () => {
   const pts = await loadSelected();
   if (!pts.length) return alert('เลือกจุดก่อน');
   let t = 'Point,OA,FFT1_dB,FFT1_Hz,OA-Peak1,FFT2_dB,FFT2_Hz,OA-Peak2,FFT3_dB,FFT3_Hz,OA-Peak3,' +
-          'Prot1_dB,Prot1_Hz,Prot2_dB,Prot2_Hz,Prot3_dB,Prot3_Hz,CPBMax_dB,CPBMax_Hz,OA-Max,J_OA-Peak,J_Protrusion,J_OA-Max,Judge,BG,Dist_m\n';
+          'Prot1_dB,Prot1_Hz,Prot2_dB,Prot2_Hz,Prot3_dB,Prot3_Hz,CPBMax_dB,CPBMax_Hz,OA-Max,J_OA-Peak,J_Protrusion,J_OA-Max,Judge,BG,Dist_m,Src_FFT1,Src_FFT2,Src_FFT3,Src_Prot1,Src_Prot2,Src_Prot3\n';
   pts.forEach(p => {
     const a = p.a, r = [p.n.replace('.csv', ''), a.oa.toFixed(1)];
     for (let k = 0; k < 3; k++) { const x = a.fftTop[k]; r.push(x ? x.db.toFixed(1) : '', x ? x.hz : '', x ? x.oaPk.toFixed(1) : ''); }
     for (let k = 0; k < 3; k++) { const x = a.protTop[k]; r.push(x ? x.db.toFixed(1) : '', x ? x.hz : ''); }
     r.push(a.cpbMax.db.toFixed(1), a.cpbMax.fn, a.oaMax.toFixed(1), a.oaPkOk ? 'OK' : 'NG', a.protOk ? 'OK' : 'NG', cfg.oaMaxTh > 0 ? (a.oaMaxOk ? 'OK' : 'NG') : '-', a.ng ? 'NG' : 'OK', (cfg.useBg && S.bg) ? S.bgName : '-', cfg.dist);
+    for (let k = 0; k < 3; k++) r.push(a.fftTop[k] ? (harm(a.fftTop[k].hz) || '-') : '');
+    for (let k = 0; k < 3; k++) r.push(a.protTop[k] ? (harm(a.protTop[k].hz) || '-') : '');
     t += r.join(',') + '\n';
   });
   download('Summary_' + stamp() + '.csv', t);
@@ -737,8 +816,48 @@ function bindNum(id, key) {
   $(id).value = cfg[key];
   $(id).oninput = () => { const v = parseFloat($(id).value); cfg[key] = isNaN(v) ? 0 : v; if (key === 'dist' && !(cfg.dist > 0)) cfg.dist = 1; store.set('cfg', cfg); refresh(); };
 }
-bindNum('sProt', 'protTh'); bindNum('sOaPk', 'oaPkTh'); bindNum('sDist', 'dist'); bindNum('sComp', 'comp'); bindNum('sOaMax', 'oaMaxTh');
-if (!cfg.comp) $('sComp').value = '';
+bindNum('sProt', 'protTh'); bindNum('sOaPk', 'oaPkTh'); bindNum('sDist', 'dist'); bindNum('sComp', 'comp'); bindNum('sOaMax', 'oaMaxTh'); bindNum('sFanRpm', 'fanRpm'); bindNum('sFanBl', 'fanBl'); bindNum('sCar', 'carrier');
+['sComp', 'sFanRpm', 'sFanBl', 'sCar'].forEach(id => { if (!parseFloat($(id).value)) $(id).value = ''; });
+$('sSup').value = String(cfg.supply || 0);
+$('sSup').onchange = () => { cfg.supply = parseFloat($('sSup').value) || 0; store.set('cfg', cfg); refresh(); };
+function showBpf() { $('sBpf').value = (cfg.fanRpm > 0 && cfg.fanBl > 0) ? (cfg.fanRpm / 60 * cfg.fanBl).toFixed(1) + ' Hz' : ''; }
+['sFanRpm', 'sFanBl'].forEach(id => $(id).addEventListener('input', showBpf)); showBpf();
+
+// ---------------- compare two conditions ----------------
+function fillCmpSelects() {
+  const names = S.files.map(f => f.n).filter(n => n.indexOf('_BG') < 0);
+  ['cA', 'cB'].forEach((id, k) => {
+    const cur = $(id).value;
+    $(id).innerHTML = names.map(n => '<option>' + n + '</option>').join('');
+    if (names.indexOf(cur) >= 0) $(id).value = cur; else if (names.length > k) $(id).value = names[names.length - 2 + k] || names[k];
+  });
+}
+$('bCmp').onclick = async () => {
+  const nA = $('cA').value, nB = $('cB').value, fA = parseFloat($('cfA').value), fB = parseFloat($('cfB').value);
+  if (!nA || !nB || nA === nB) return alert('เลือกผลวัด A และ B ที่ต่างกัน');
+  if (!(fA > 0) || !(fB > 0)) return alert('กรอก Comp Hz ของ A และ B');
+  if (Math.abs(fB - fA) / fA < 0.1) alert('ความถี่ A กับ B ต่างกันน้อย (< 10%) — ผลอาจแยกได้ไม่ชัด');
+  const dA = await fetchSpectrum(nA), dB = await fetchSpectrum(nB);
+  if (!dA || !dB) return alert('อ่านไฟล์ไม่ได้');
+  const rows = compareConditions(analyze(dA, opts()), analyze(dB, opts()), fA, fB);
+  const KIND = {
+    move: r => '<span class="k-move">ขยับตาม Comp ≈' + r.order.toFixed(1) + '×</span>',
+    fixed: () => '<span class="k-fixed">อยู่กับที่</span>',
+    both: () => '<span class="k-fixed">ทั้งสองแบบ</span>',
+    na: () => '<span class="k-gone">แยกไม่ได้</span>',
+    gone: () => '<span class="k-gone">หายไปใน B</span>',
+    new: () => '<span class="k-new">เกิดใหม่ใน B</span>'
+  };
+  const f = v => v === null ? '–' : v.toFixed(1);
+  let h = '<table class="mt"><colgroup><col style="width:19%"><col style="width:13%"><col style="width:19%"><col style="width:13%"><col style="width:36%"></colgroup>' +
+          '<tr><th>Hz (A)</th><th>dB</th><th>Hz (B)</th><th>dB</th><th>ผล</th></tr>';
+  rows.forEach(r => { h += '<tr><td>' + f(r.hz) + '</td><td>' + f(r.db) + '</td><td>' + f(r.bHz) + '</td><td>' + f(r.bDb) + '</td><td class="wr" style="text-align:left">' + KIND[r.kind](r) + '</td></tr>'; });
+  h += '</table><div class="leg"><b>ขยับตาม Comp</b> = มาจากชิ้นส่วนหมุนของคอมเพรสเซอร์ (เลข = ลำดับฮาร์โมนิก) · ' +
+       '<b>อยู่กับที่</b> = เรโซแนนซ์ท่อ/แผ่น/โครงสร้าง, ไฟเลี้ยง หรืออินเวอร์เตอร์ · <b>ทั้งสองแบบ</b> = มี peak ทั้งที่เดิมและที่ขยับ · ' +
+       '<b>หายไปใน B</b> = เกิดเฉพาะบางรอบ (มักเป็นเรโซแนนซ์ที่ถูกกระตุ้นเมื่อฮาร์โมนิกไปตรงพอดี) · <b>เกิดใหม่ใน B</b> = มีเฉพาะสภาวะ B · ' +
+       '<b>แยกไม่ได้</b> = ความถี่ขยับน้อยกว่า 25 Hz ให้เลือก A/B ที่ต่างกันมากขึ้น · แสดงเฉพาะ peak เด่น (Protrusion ≥ 3 dB) 10 อันดับแรก</div>';
+  $('cmpOut').innerHTML = rows.length ? h : '<div class="sub">ไม่พบ peak เด่นใน A</div>';
+};
 $('sUseBg').checked = cfg.useBg;
 $('sUseBg').onchange = () => { cfg.useBg = $('sUseBg').checked; store.set('cfg', cfg); refresh(); };
 $('bOff').onclick = () => { const v = parseFloat($('sOff').value); if (!isNaN(v)) send('cal:' + v.toFixed(2)); };
