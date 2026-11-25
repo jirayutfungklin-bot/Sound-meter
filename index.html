@@ -44,9 +44,18 @@ summary{font-weight:600;cursor:pointer}
 #micGate h1{margin:0;font-size:26px}#micGate p{margin:0;max-width:420px;color:#d1d5db;font-size:14px;line-height:1.5}
 #micBtn{font-size:18px;padding:14px 28px;background:#1d4ed8;color:#fff;border:0;border-radius:10px}#micErr{color:#fca5a5;font-size:13px}
 #clip{display:none;margin-top:6px;padding:6px 8px;border-radius:6px;background:#fee2e2;color:#b91c1c;font-weight:600;font-size:13px}
+.micbar{position:sticky;top:38px;z-index:4;background:#1f2937;color:#d1d5db;font-size:12px;padding:4px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.micbar b{color:#fff}.micbar .warn{color:#fbbf24}
+#notice{display:none;margin:8px;padding:8px 10px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:13px;font-weight:600}
+.refrow{margin:6px 0 2px;gap:6px}.refrow select{flex:1;min-width:0;font-size:14px;padding:5px}.refrow button{padding:5px 8px;font-size:13px}.chk{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:4px}
+.d-up{color:#dc2626;font-weight:700}
+.bars div.b{display:grid;grid-template-columns:70px minmax(0,1fr) 52px 48px;align-items:center;gap:6px;font-size:13px;padding:3px 0;font-variant-numeric:tabular-nums}
+.bars .tr{height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden}.bars .fl{height:100%;border-radius:4px}
+.chips button{padding:4px 8px;font-size:12px;margin:2px}
 </style></head><body>
-<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.0</p></div>
+<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.1</p></div>
 <header><b>Sound Meter <span style="font-weight:400;font-size:12px;color:#9ca3af">Mobile</span></b><span id="mode" class="badge">LIVE</span><span id="conn" class="dot"></span></header>
+<div id="micBar" class="micbar" style="display:none"></div>
+<div id="notice"></div>
 
 <section class="card">
   <div class="row"><div><div class="lbl">OA dB(A)</div><div id="oa" class="big">--</div></div><div id="judge" class="judge">--</div></div>
@@ -54,6 +63,7 @@ summary{font-weight:600;cursor:pointer}
   <div id="title" class="sub"></div>
   <div id="bgInfo" class="sub"></div>
   <div id="clip">⚠ เสียงดังเกินไมค์ (clip) — ถอยห่างออกมา ค่าที่ได้ไม่ถูกต้อง</div>
+  <div class="row" style="margin-top:8px"><button id="bShare">แชร์รูปผล</button><span class="sub" style="margin:0">ส่งภาพสรุป (กราฟ + ผลตัดสิน) เข้า LINE / อีเมล</span></div>
 </section>
 
 <section class="card">
@@ -81,8 +91,13 @@ summary{font-weight:600;cursor:pointer}
     <label><span style="color:#dc2626">I · Carrier kHz</span><input id="sCar" type="number" inputmode="decimal" step="0.1" min="0" placeholder="–"></label>
     <label><span>BPF พัดลม</span><input id="sBpf" disabled placeholder="–"></label>
   </div>
+  <div class="row wrap refrow"><span class="lbl">อ้างอิง</span><select id="refSel"></select><button id="bRefDel" title="ลบอ้างอิงนี้">✕</button><button id="bRefImp">นำเข้าไฟล์</button><input type="file" id="refFile" accept=".csv,.xlsx,.xls,text/csv" style="display:none"></div>
+  <label class="chk"><input type="checkbox" id="refNorm"> เทียบรูปร่าง (ปรับระดับอ้างอิงให้ OA เท่ากัน — ใช้เมื่อยังไม่ได้ calibrate)</label>
+  <div id="refPick"></div>
   <canvas id="cF"></canvas>
   <div id="cur" class="sub">แตะ/ลากบนกราฟเพื่ออ่านค่า</div>
+  <div id="refInfo" class="sub"></div>
+  <div id="refTbl"></div>
 </section>
 
 <section class="card">
@@ -114,6 +129,15 @@ summary{font-weight:600;cursor:pointer}
   </details>
 </section>
 
+<section class="card">
+  <details id="mapDet"><summary>แผนที่จุด (หาตำแหน่งต้นเสียง)</summary>
+    <div class="sub">ติ๊กเลือกจุดที่บันทึก (ด้านบน) แล้วเลือกความถี่ที่สนใจ · ตั้งชื่อจุดขึ้นต้นด้วย <b>F</b> (หน้า) <b>B</b> (หลัง) <b>L</b> (ซ้าย) <b>R</b> (ขวา) <b>T</b> (บน) เช่น F1, F2, B1, L1 เพื่อวางบนผังยูนิต</div>
+    <div class="row wrap" style="margin-top:6px"><span class="lbl">ความถี่ Hz</span><input id="mapHz" type="text" inputmode="decimal" placeholder="OA" style="width:90px"><button id="bMap" class="pri">แสดง</button></div>
+    <div id="mapChips" class="chips"></div>
+    <div id="mapOut"></div>
+  </details>
+</section>
+
 <section class="card set">
   <details><summary>ตั้งค่า</summary>
     <label>เกณฑ์ Peak Protrusion (NG เมื่อ &gt;) dB <input id="sProt" type="number" step="0.5"></label>
@@ -122,7 +146,8 @@ summary{font-weight:600;cursor:pointer}
     <label>ระยะวัดจริง (ปรับเป็น 1 m) m <input id="sDist" type="number" step="0.1" min="0.1"></label>
     <label>แก้ค่าเสียงพื้นหลัง (BG) <input id="sUseBg" type="checkbox" style="width:auto"></label>
     <hr>
-    <label>Offset calibration (มือถือนี้) dB <input id="sOff" type="number" step="0.1"></label>
+    <div id="micRow" style="display:none"><label>ไมค์ที่ใช้ <select id="micSel" style="max-width:60%;font-size:14px"></select></label></div>
+    <label>Offset calibration (ไมค์ที่ใช้อยู่) dB <input id="sOff" type="number" step="0.1"></label>
     <div class="row"><button id="bOff">บันทึก offset</button><span id="offNow" class="sub"></span></div>
     <div id="micInfo" class="sub" style="margin:6px 0"></div>
     <label style="margin-top:10px">เทียบเครื่องวัดอ้างอิง: ค่าที่อ่านได้ dB(A) <input id="sRefDb" type="number" step="0.1"></label>
@@ -177,7 +202,8 @@ summary{font-weight:600;cursor:pointer}
   const live = new Float64Array(NLINES), frame = new Float64Array(NLINES), msum = new Float64Array(NLINES);
   let liveValid = false, firstLive = true, warm = 0, newSamples = 0, clipHold = 0;
   let meas = null;                         // {sec,label,bg,count,target}
-  let off = LS.get('off', 0), calibrated = LS.get('calibrated', false);
+  let off = 0, calibrated = false;            // per-microphone, loaded from LS 'offmap' when a mic opens
+  let micLabel = '', micId = '', micStream = null, micSrc = null, micNode = null, mics = [];
   const alpha = 1 - Math.exp(-1 / FPS);    // ~1 s exponential average
   let ctx = null, srcRate = FS, rsPos = 0, rsPrev = 0, engine = null, wakeLock = null, trackInfo = '';
 
@@ -237,7 +263,7 @@ summary{font-weight:600;cursor:pointer}
     const name = String(seq).padStart(4, '0') + (m.bg ? '_BG' : '_' + lbl) + '.csv';
     LS.set('seq', seq + 1);
     let t = '#label,' + (m.bg ? 'BG' : lbl) + '\n#type,' + (m.bg ? 'BG' : 'MEAS') + '\n#seconds,' + m.sec + '\n#averages,' + m.target +
-            '\n#offset_dB,' + off.toFixed(2) + '\n#date,' + new Date().toISOString() + '\n#device,' + navigator.userAgent.replace(/,/g, ' ') + '\nNo,Hz,dBA\n';
+            '\n#offset_dB,' + off.toFixed(2) + '\n#mic,' + micLabel.replace(/,/g, ' ') + '\n#date,' + new Date().toISOString() + '\n#device,' + navigator.userAgent.replace(/,/g, ' ') + '\nNo,Hz,dBA\n';
     d.forEach((v, k) => { t += (k + 1) + ',' + (k * DFq) + ',' + v + '\n'; });
     if (!LS.set('f_' + name, t)) { alert('หน่วยความจำเต็ม — Export แล้วลบข้อมูลเก่าก่อน'); return name; }
     const idx = fileIndex(); idx.push({ n: name, s: t.length }); LS.set('index', idx);
@@ -267,16 +293,31 @@ summary{font-weight:600;cursor:pointer}
   function releaseWake() { /* keep screen on while app is open; released by the browser when hidden */ }
 
   // ---------- microphone ----------
-  async function startMic() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
-    });
+  // offsets are stored per microphone label: { "<label>": { off, cal } }
+  function loadOffset() {
+    const map = LS.get('offmap', {});
+    if (!Object.keys(map).length && LS.get('calibrated', false)) {      // migrate v1 single offset to the first mic seen
+      map[micLabel] = { off: LS.get('off', 0), cal: true }; LS.set('offmap', map);
+    }
+    const e = map[micLabel];
+    off = e ? e.off : 0; calibrated = !!(e && e.cal);
+  }
+  function saveOffset(v) {
+    const map = LS.get('offmap', {}); map[micLabel] = { off: v, cal: true }; LS.set('offmap', map);
+    off = v; calibrated = true;
+  }
+  async function listMics() {
+    try {
+      const ds = await navigator.mediaDevices.enumerateDevices();
+      mics = ds.filter(d => d.kind === 'audioinput').map((d, k) => ({ id: d.deviceId, label: d.label || ('ไมค์ ' + (k + 1)) }));
+    } catch (e) { mics = []; }
+  }
+  async function setupCtx() {
     const forceNative = location.hash === '#native';
     try { ctx = forceNative ? new AudioContext() : new AudioContext({ sampleRate: FS }); }
     catch (e) { ctx = new AudioContext(); }
     srcRate = ctx.sampleRate;
     if (ctx.state !== 'running') await ctx.resume();
-    const src = ctx.createMediaStreamSource(stream);
     const sink = ctx.createGain(); sink.gain.value = 0; sink.connect(ctx.destination);
     if (ctx.audioWorklet) {
       const code = "class C extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(2048);this.n=0}" +
@@ -284,19 +325,61 @@ summary{font-weight:600;cursor:pointer}
         "registerProcessor('cap',C)";
       const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
       await ctx.audioWorklet.addModule(url);
-      const node = new AudioWorkletNode(ctx, 'cap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
-      node.port.onmessage = e => onAudio(e.data);
-      src.connect(node); node.connect(sink);
+      micNode = new AudioWorkletNode(ctx, 'cap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
+      micNode.port.onmessage = e => onAudio(e.data);
     } else {
-      const sp = ctx.createScriptProcessor(4096, 1, 1);
-      sp.onaudioprocess = e => onAudio(e.inputBuffer.getChannelData(0));
-      src.connect(sp); sp.connect(sink);
+      micNode = ctx.createScriptProcessor(4096, 1, 1);
+      micNode.onaudioprocess = e => onAudio(e.inputBuffer.getChannelData(0));
     }
-    const st = stream.getAudioTracks()[0].getSettings ? stream.getAudioTracks()[0].getSettings() : {};
-    const flag = v => v === undefined ? '?' : (v ? 'ON' : 'off');
-    trackInfo = 'Sample rate ' + srcRate + ' Hz' + (srcRate !== FS ? ' (resample → 51200)' : '') +
-      ' · AGC ' + flag(st.autoGainControl) + ' · NS ' + flag(st.noiseSuppression) + ' · EC ' + flag(st.echoCancellation);
+    micNode.connect(sink);
     document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx && ctx.state !== 'running') ctx.resume(); });
+    navigator.mediaDevices.addEventListener && navigator.mediaDevices.addEventListener('devicechange', onDeviceChange);
+  }
+  async function openMic(deviceId) {
+    const audio = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 };
+    if (deviceId) audio.deviceId = { exact: deviceId };
+    const stream = await navigator.mediaDevices.getUserMedia({ audio });
+    if (micSrc) { try { micSrc.disconnect(); } catch (e) {} }
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
+    micStream = stream;
+    const track = stream.getAudioTracks()[0];
+    const st = track.getSettings ? track.getSettings() : {};
+    await listMics();
+    micId = st.deviceId || deviceId || '';
+    const known = mics.find(m => m.id === micId);
+    micLabel = track.label || (known && known.label) || 'ไมค์ในเครื่อง';
+    loadOffset();
+    // restart averaging so data from two microphones never mixes
+    firstLive = true; liveValid = false; warm = 0; blkN = 0; rsPos = 0;
+    if (meas) { meas = null; engine && engine.emit({ t: 'N', msg: 'ไมค์เปลี่ยนระหว่างวัด — ยกเลิกการวัดแล้ว กรุณาวัดใหม่' }); }
+    micSrc = ctx.createMediaStreamSource(stream);
+    micSrc.connect(micNode);
+    track.onended = () => { engine && engine.emit({ t: 'N', msg: 'ไมค์ "' + micLabel + '" หลุด/ถูกถอด — สลับไปไมค์เริ่มต้น' }); openMic('').then(() => engine && engine.info()).catch(() => {}); };
+    const flag = v => v === undefined ? '?' : (v ? 'ON' : 'off');
+    trackInfo = 'ไมค์: ' + micLabel + '<br>Sample rate ' + srcRate + ' Hz' + (srcRate !== FS ? ' (resample → 51200)' : '') +
+      ' · AGC ' + flag(st.autoGainControl) + ' · NS ' + flag(st.noiseSuppression) + ' · EC ' + flag(st.echoCancellation);
+  }
+  let devTimer = null;
+  function onDeviceChange() {
+    clearTimeout(devTimer);
+    devTimer = setTimeout(async () => {
+      const before = mics.map(m => m.id);
+      await listMics();
+      const added = mics.filter(m => before.indexOf(m.id) < 0 && m.id !== 'default' && m.id !== 'communications');
+      const track = micStream && micStream.getAudioTracks()[0];
+      if (!track || track.readyState === 'ended' || (micId && micId !== 'default' && !mics.some(m => m.id === micId))) {
+        engine && engine.emit({ t: 'N', msg: 'ไมค์ที่ใช้อยู่ถูกถอด — สลับไปไมค์เริ่มต้น' });
+        try { await openMic(''); } catch (e) {}
+      } else if (added.length) {
+        engine && engine.emit({ t: 'N', msg: 'พบไมค์ใหม่: ' + added.map(m => m.label).join(', ') + ' — ตอนนี้ยังใช้ "' + micLabel + '" อยู่ เลือกไมค์ได้ในหน้าตั้งค่า' });
+      }
+      engine && engine.info();
+    }, 600);
+  }
+  async function startMic() {
+    if (!ctx) await setupCtx();
+    try { await openMic(LS.get('micId', '')); }
+    catch (e) { await openMic(''); }      // saved mic not present -> default
     holdWake();
   }
 
@@ -320,7 +403,7 @@ summary{font-weight:600;cursor:pointer}
     }
     emit(o) { this.onmessage && this.onmessage({ data: JSON.stringify(o) }); }
     info() {
-      this.emit({ t: 'I', off, used: usedKB() * 2, total: 5 * 1024 * 1024 });
+      this.emit({ t: 'I', off, cal: calibrated, mic: micLabel, micId, mics, used: usedKB() * 2, total: 5 * 1024 * 1024 });
       const mi = document.getElementById('micInfo');
       if (mi) mi.innerHTML = trackInfo + (calibrated ? '' : '<br><b class="warn">ยังไม่ได้ calibrate — ค่า dB เป็นค่าประมาณ</b>');
     }
@@ -332,6 +415,12 @@ summary{font-weight:600;cursor:pointer}
       this.emit({ t: 'L', a: meas ? 1 : 0, b: meas && meas.bg ? 1 : 0, p: meas ? meas.count / meas.target : 0, c: clipHold > 0 ? 1 : 0, d });
     }
     send(s) {
+      if (s.indexOf('mic:') === 0) {
+        const id = s.slice(4);
+        openMic(id).then(() => { LS.set('micId', id); this.emit({ t: 'N', msg: 'เปลี่ยนเป็นไมค์ "' + micLabel + '"' + (calibrated ? '' : ' — ไมค์นี้ยังไม่ได้ calibrate') }); this.info(); })
+          .catch(e => { this.emit({ t: 'N', msg: 'เปิดไมค์นี้ไม่ได้: ' + (e.message || e) }); this.info(); });
+        return;
+      }
       const c = s.split(':');
       if (c[0] === 'meas' || c[0] === 'bg') {
         if (meas) return;
@@ -342,7 +431,7 @@ summary{font-weight:600;cursor:pointer}
       } else if (c[0] === 'cancel') { meas = null; }
       else if (c[0] === 'cal') {
         const v = parseFloat(c[1]);
-        if (!isNaN(v) && v > -60 && v < 60) { off = v; calibrated = true; LS.set('off', off); LS.set('calibrated', true); }
+        if (!isNaN(v) && v > -60 && v < 60) saveOffset(v);
         this.info();
       }
     }
@@ -478,7 +567,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('sm_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('sm_' + k, JSON.stringify(v)); } catch (e) {} }
 };
-const cfg = Object.assign({ protTh: 15, oaPkTh: 6, oaMaxTh: 6, dist: 1, comp: 0, fanRpm: 0, fanBl: 0, supply: 0, carrier: 0, useBg: true, zoom: 10000 }, store.get('cfg', {}));
+const cfg = Object.assign({ protTh: 15, oaPkTh: 6, oaMaxTh: 6, dist: 1, comp: 0, fanRpm: 0, fanBl: 0, supply: 0, carrier: 0, useBg: true, zoom: 10000, refNorm: true }, store.get('cfg', {}));
 const S = { view: 'live', live: null, cur: null, curName: '', bg: store.get('bg', null), bgName: store.get('bgName', ''),
             files: [], off: 0, cursor: -1, lastA: null, measuring: false, ws: null };
 
@@ -491,6 +580,7 @@ const fHz = hz => hz >= 1000 ? parseFloat((hz / 1000).toFixed(3)) + 'k' : String
 // ---------------- rendering ----------------
 function render(raw) {
   const a = analyze(raw, opts());
+  a.ref = refFor(a);
   S.lastA = a;
   $('oa').textContent = a.oa.toFixed(1);
   const j = $('judge');
@@ -512,6 +602,7 @@ function render(raw) {
   drawFFT(a);
   drawCPB(a);
   drawTables(a);
+  drawRef(a);
 }
 
 function drawJudge(a) {
@@ -573,7 +664,8 @@ function drawFFT(a) {
   const c = $('cF'), { g, w, h } = setupCanvas(c, 250), m = MF;
   const fmax = cfg.zoom || 10000, nVis = Math.min(NL - 1, Math.round(fmax / DF));
   const pw = w - m.l - m.r, ph = h - m.t - m.b;
-  const [ymin, ymax] = yRange(a.L.slice(1, nVis + 1));
+  const R = a.ref;
+  const [ymin, ymax] = yRange(a.L.slice(1, nVis + 1).concat(R ? R.L.slice(1, nVis + 1) : []));
   const X = f => m.l + f / fmax * pw, Y = v => m.t + (ymax - Math.max(ymin, Math.min(ymax, v))) / (ymax - ymin) * ph;
   g.clearRect(0, 0, w, h); g.font = '10px system-ui'; g.fillStyle = '#6b7280'; g.strokeStyle = '#e5e7eb'; g.lineWidth = 1;
   g.textAlign = 'right';
@@ -598,6 +690,14 @@ function drawFFT(a) {
   });
   if (hidden) { g.fillStyle = '#7c3aed'; g.textAlign = 'left'; g.fillText('ซูมเข้าเพื่อดูเส้นแหล่งเสียง', m.l + 4, h - m.b - 6); g.textAlign = 'center'; }
   g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
+  if (R) {
+    // red shading where the current spectrum is >= 3 dB above the reference, then the reference line in grey
+    g.strokeStyle = 'rgba(239,68,68,.35)'; g.lineWidth = Math.max(1.5, pw / nVis);
+    for (let i = 1; i <= nVis; i++) if (a.L[i] - R.L[i] >= 3) { g.beginPath(); g.moveTo(X(i * DF), Y(R.L[i])); g.lineTo(X(i * DF), Y(a.L[i])); g.stroke(); }
+    g.strokeStyle = '#9ca3af'; g.lineWidth = 1.4; g.beginPath();
+    for (let i = 0; i <= nVis; i++) { const x = X(i * DF), y = Y(R.L[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+  }
   g.strokeStyle = '#1e3a8a'; g.lineWidth = 1.2; g.beginPath();
   for (let i = 0; i <= nVis; i++) { const x = X(i * DF), y = Y(a.L[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); }
   g.stroke(); g.restore();
@@ -620,7 +720,8 @@ function drawFFT(a) {
     const i = S.cursor, x = X(i * DF);
     g.strokeStyle = '#ef4444'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, m.t); g.lineTo(x, h - m.b); g.stroke();
     const hm = harm(i * DF);
-    $('cur').textContent = (i * DF) + ' Hz : ' + a.L[i].toFixed(1) + ' dB(A)' + (hm ? '  (' + hm + ')' : '');
+    $('cur').textContent = (i * DF) + ' Hz : ' + a.L[i].toFixed(1) + ' dB(A)' + (hm ? '  (' + hm + ')' : '') +
+      (R ? ' · อ้างอิง ' + R.L[i].toFixed(1) + ' (Δ ' + (a.L[i] - R.L[i] >= 0 ? '+' : '') + (a.L[i] - R.L[i]).toFixed(1) + ')' : '');
   }
   document.querySelectorAll('#zoom button').forEach(b => b.classList.toggle('sel', +b.dataset.z === fmax));
 }
@@ -628,15 +729,18 @@ function drawFFT(a) {
 function drawCPB(a) {
   const c = $('cC'), { g, w, h } = setupCanvas(c, 200), m = { l: 32, r: 6, t: 8, b: 34 };
   const pw = w - m.l - m.r, ph = h - m.t - m.b, n = a.cpb.length, bw = pw / n;
-  const [ymin, ymax] = yRange(a.cpb.map(x => x.db));
+  const R = a.ref;
+  const [ymin, ymax] = yRange(a.cpb.map(x => x.db).concat(R ? R.cpb.map(x => x.db) : []));
   const Y = v => m.t + (ymax - Math.max(ymin, Math.min(ymax, v))) / (ymax - ymin) * ph;
   g.clearRect(0, 0, w, h); g.font = '10px system-ui'; g.fillStyle = '#6b7280'; g.strokeStyle = '#e5e7eb';
   g.textAlign = 'right';
   for (let v = ymin; v <= ymax; v += 10) { g.beginPath(); g.moveTo(m.l, Y(v)); g.lineTo(w - m.r, Y(v)); g.stroke(); g.fillText(v, m.l - 3, Y(v) + 3); }
   a.cpb.forEach((b, k) => {
     const x = m.l + k * bw;
-    g.fillStyle = b === a.cpbMax ? '#f59e0b' : '#93c5fd';
+    const over = R && b.db - R.cpb[k].db >= 3;
+    g.fillStyle = over ? '#f87171' : b === a.cpbMax ? '#f59e0b' : '#93c5fd';
     g.fillRect(x + 1, Y(b.db), bw - 2, h - m.b - Y(b.db));
+    if (R) { g.strokeStyle = '#374151'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 1, Y(R.cpb[k].db)); g.lineTo(x + bw - 1, Y(R.cpb[k].db)); g.stroke(); g.lineWidth = 1; g.strokeStyle = '#e5e7eb'; }
     g.save(); g.translate(x + bw / 2 + 3, h - m.b + 4); g.rotate(-Math.PI / 2); g.textAlign = 'right'; g.fillStyle = '#6b7280';
     g.fillText(fHz(b.fn), 0, 0); g.restore();
   });
@@ -678,7 +782,18 @@ function connect() {
       $('offNow').textContent = 'ปัจจุบัน ' + m.off.toFixed(2) + ' dB';
       $('sOff').value = m.off.toFixed(2);
       $('fsInfo').textContent = 'ข้อมูลในมือถือ ~' + (m.used / 1024).toFixed(0) + ' / ' + (m.total / 1024).toFixed(0) + ' KB — Export เก็บไว้เป็นระยะ';
+      if (m.mic !== undefined) {
+        S.micName = m.mic;
+        $('micBar').style.display = 'block';
+        $('micBar').innerHTML = 'ไมค์: <b>' + esc(m.mic) + '</b>' + (m.cal ? ' · offset ' + m.off.toFixed(1) + ' dB' : ' · <span class="warn">ยังไม่ calibrate</span>');
+      }
+      if (m.mics) {
+        $('micRow').style.display = '';
+        $('micSel').innerHTML = m.mics.map(x => '<option value="' + esc(x.id) + '">' + esc(x.label) + '</option>').join('');
+        $('micSel').value = m.micId || '';
+      }
     }
+    else if (m.t === 'N') showNotice(m.msg);
   };
 }
 function send(s) { if (S.ws && S.ws.readyState === 1) S.ws.send(s); else alert('ยังไม่ได้เปิดไมค์'); }
@@ -736,7 +851,7 @@ async function loadFiles() {
       const chk = sel[f.n] === undefined ? !isBg : sel[f.n];
       return '<div><input type="checkbox" data-n="' + f.n + '" ' + (chk ? 'checked' : '') + '>' +
         '<span>' + f.n + (f.n === S.bgName ? ' <b class="warn">(BG ใช้อยู่)</b>' : '') + '</span>' +
-        '<button data-v="' + f.n + '">ดู</button>' + (isBg ? '<button data-b="' + f.n + '">ใช้เป็น BG</button>' : '') +
+        '<button data-v="' + f.n + '">ดู</button>' + (isBg ? '<button data-b="' + f.n + '">ใช้เป็น BG</button>' : '<button data-r="' + f.n + '">อ้างอิง</button>') +
         '<button data-d="' + f.n + '">ลบ</button></div>';
     }).join('') : '<div class="sub">ยังไม่มีข้อมูล</div>';
   } catch (e) { $('files').innerHTML = '<div class="sub">โหลดรายการไม่ได้</div>'; }
@@ -745,6 +860,7 @@ async function loadFiles() {
 $('files').addEventListener('click', async e => {
   const t = e.target;
   if (t.dataset.v) { const d = await fetchSpectrum(t.dataset.v); if (d) { S.cur = d; S.curName = t.dataset.v; setView('result'); window.scrollTo(0, 0); } }
+  else if (t.dataset.r) { const d = await fetchSpectrum(t.dataset.r); if (d) { addRef(t.dataset.r.replace(/\.csv$/, ''), d); $('pmsg').textContent = 'ตั้ง ' + t.dataset.r + ' เป็นกราฟอ้างอิงแล้ว'; } }
   else if (t.dataset.b) { const d = await fetchSpectrum(t.dataset.b); if (d) { S.bg = d; S.bgName = t.dataset.b; store.set('bg', d); store.set('bgName', S.bgName); loadFiles(); refresh(); } }
   else if (t.dataset.d) { if (confirm('ลบ ' + t.dataset.d + ' ?')) { await fetch('/api/del?n=' + encodeURIComponent(t.dataset.d)); loadFiles(); } }
 });
@@ -868,6 +984,260 @@ $('bMatch').onclick = () => {
   if (confirm('ตั้ง offset = ' + nv.toFixed(2) + ' dB ?')) send('cal:' + nv.toFixed(2));
 };
 window.addEventListener('resize', refresh);
+
+// ================= helpers =================
+function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function showNotice(msg) {
+  const n = $('notice'); n.textContent = msg; n.style.display = 'block';
+  clearTimeout(showNotice.t); showNotice.t = setTimeout(() => { n.style.display = 'none'; }, 7000);
+}
+$('micSel').onchange = () => send('mic:' + $('micSel').value);
+
+// ================= reference overlay =================
+S.refName = store.get('refName', '');
+function refsAll() { return store.get('refs', []); }
+function curRef() { return refsAll().find(r => r.n === S.refName) || null; }
+function addRef(name, d) {
+  const l = refsAll().filter(r => r.n !== name);
+  l.push({ n: name, d });
+  while (l.length > 12) l.shift();
+  store.set('refs', l); S.refName = name; store.set('refName', name); S.refCache = null;
+  fillRefSel(); refresh();
+}
+function fillRefSel() {
+  const l = refsAll();
+  $('refSel').innerHTML = '<option value="">– ไม่ใช้ –</option>' + l.map(r => '<option value="' + esc(r.n) + '">' + esc(r.n) + '</option>').join('');
+  $('refSel').value = curRef() ? S.refName : '';
+}
+$('refSel').onchange = () => { S.refName = $('refSel').value; store.set('refName', S.refName); S.refCache = null; refresh(); };
+$('bRefDel').onclick = () => {
+  if (!S.refName) return;
+  if (!confirm('ลบอ้างอิง "' + S.refName + '" ?')) return;
+  store.set('refs', refsAll().filter(r => r.n !== S.refName)); S.refName = ''; store.set('refName', ''); fillRefSel(); refresh();
+};
+$('refNorm').checked = cfg.refNorm;
+$('refNorm').onchange = () => { cfg.refNorm = $('refNorm').checked; store.set('cfg', cfg); refresh(); };
+
+function refFor(a) {
+  const r = curRef();
+  if (!r) return null;
+  if (!S.refCache || S.refCache.n !== r.n) S.refCache = { n: r.n, a: analyze(r.d, { useBg: false, dist: 1, protTh: cfg.protTh, oaPkTh: cfg.oaPkTh, oaMaxTh: cfg.oaMaxTh }) };
+  const ra = S.refCache.a, shift = cfg.refNorm ? a.oa - ra.oa : 0;
+  const L = ra.L.map(v => v + shift), cpb = ra.cpb.map(b => ({ fn: b.fn, db: b.db + shift }));
+  const rows = [];
+  a.peaks.forEach(p => {
+    if (p.loose === null || p.loose < 3) return;
+    let mx = -99;
+    for (let k = p.i - 1; k <= p.i + 1; k++) if (k >= 0 && k < NL && L[k] > mx) mx = L[k];
+    if (p.db - mx >= 3) rows.push({ hz: p.hz, db: p.db, ref: mx, d: p.db - mx });
+  });
+  rows.sort((x, y) => y.d - x.d);
+  return { name: r.n, L, cpb, oa: ra.oa, shift, dOA: a.oa - ra.oa, rows: rows.slice(0, 5) };
+}
+const sgn = v => (v >= 0 ? '+' : '') + v.toFixed(1);
+function drawRef(a) {
+  const R = a.ref;
+  if (!R) { $('refInfo').textContent = ''; $('refTbl').innerHTML = ''; return; }
+  $('refInfo').innerHTML = 'อ้างอิง (เส้นเทา): ' + esc(R.name) + ' · OA อ้างอิง ' + R.oa.toFixed(1) + ' → ตอนนี้ ' + a.oa.toFixed(1) +
+    ' (<span class="' + (R.dOA >= 3 ? 'd-up' : '') + '">Δ ' + sgn(R.dOA) + ' dB</span>)' +
+    (cfg.refNorm ? ' · <span class="warn">กราฟอ้างอิงถูกปรับระดับ ' + sgn(R.shift) + ' dB ให้ OA เท่ากัน</span>' : '') +
+    ' · <span style="color:#dc2626">แถบแดง</span> = สูงกว่าอ้างอิง ≥ 3 dB';
+  if (!R.rows.length) { $('refTbl').innerHTML = '<div class="sub ok">ไม่มี peak ที่สูงกว่าอ้างอิงเกิน 3 dB</div>'; return; }
+  let h = '<table class="mt"><colgroup><col style="width:22%"><col style="width:17%"><col style="width:17%"><col style="width:17%"><col style="width:27%"></colgroup>' +
+          '<tr><th>สูงกว่าอ้างอิง Hz</th><th>ตอนนี้</th><th>อ้างอิง</th><th>Δ dB</th><th>แหล่ง</th></tr>';
+  R.rows.forEach(r => { h += '<tr><td>' + r.hz.toFixed(1) + '</td><td>' + r.db.toFixed(1) + '</td><td>' + r.ref.toFixed(1) + '</td><td class="d-up">' + sgn(r.d) + '</td><td class="hm">' + (harm(r.hz) || '–') + '</td></tr>'; });
+  $('refTbl').innerHTML = h + '</table>';
+}
+
+// ---- import reference from CSV / Excel (finds 801 lines 0..10000 Hz step 12.5) ----
+function numv(v) { if (typeof v === 'number') return isFinite(v) ? v : null; if (typeof v === 'string' && v.trim() !== '' && !isNaN(+v)) return +v; return null; }
+function colName(c) { let s = ''; c++; while (c > 0) { const m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = Math.floor((c - 1) / 26); } return s; }
+function findSeries(rows, colOff) {
+  const out = [], at = (r, c) => (rows[r] || [])[c];
+  for (let r = 0; r + 800 < rows.length; r++) {
+    const row = rows[r] || [];
+    for (let c = 0; c < row.length; c++) {
+      if (numv(at(r, c)) !== 0 || numv(at(r + 1, c)) !== 12.5 || numv(at(r + 2, c)) !== 25 || numv(at(r + 800, c)) !== 10000) continue;
+      let sideRow = -1;
+      for (let rr = 0; rr < r; rr++) if ((rows[rr] || []).some(v => typeof v === 'string' && /^\s*SIDE\s*$/i.test(v))) { sideRow = rr; break; }
+      for (let cc = c + 1; cc < c + 16; cc++) {
+        const d = []; let ok = true;
+        for (let k = 0; k <= 800; k++) { const v = numv(at(r + k, cc)); if (v === null) { ok = false; break; } d.push(v); }
+        if (!ok) continue;
+        let name = '';
+        if (sideRow >= 0 && typeof at(sideRow, cc) === 'string') name = at(sideRow, cc).trim();
+        if (!name && typeof at(r - 1, cc) === 'string') name = at(r - 1, cc).trim();
+        out.push({ name: name || ('คอลัมน์ ' + colName(cc + (colOff || 0))), d });
+      }
+      return out;
+    }
+  }
+  return out;
+}
+function parseCsvText(t) { return t.replace(/^﻿/, '').split(/\r?\n/).map(l => l.split(/[,;\t]/).map(x => x.replace(/^"|"$/g, ''))); }
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (window.XLSX) return res();
+    const s = document.createElement('script'); s.src = src; s.onload = res;
+    s.onerror = () => rej(new Error('โหลดตัวอ่าน Excel ไม่ได้ (ต้องต่ออินเทอร์เน็ต) — หรือบันทึกไฟล์เป็น CSV แล้วนำเข้าแทน'));
+    document.head.appendChild(s);
+  });
+}
+async function parseXlsx(file) {
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+  const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+  const out = [];
+  wb.SheetNames.forEach(sn => {
+    const ws = wb.Sheets[sn];
+    const off = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).s.c : 0;
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+    findSeries(rows, off).forEach(x => out.push({ name: (wb.SheetNames.length > 1 ? sn + ' · ' : '') + x.name, d: x.d }));
+  });
+  return out;
+}
+$('bRefImp').onclick = () => $('refFile').click();
+$('refFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const series = /\.xlsx?$/i.test(f.name) ? await parseXlsx(f) : findSeries(parseCsvText(await f.text()), 0);
+    if (!series.length) return alert('ไม่พบข้อมูล FFT 801 lines (0–10000 Hz ทุก 12.5 Hz) ในไฟล์นี้');
+    const base = f.name.replace(/\.[^.]+$/, '');
+    if (series.length === 1) { addRef(base + ' · ' + series[0].name, series[0].d); return; }
+    S.refPick = series.map(x => ({ n: base + ' · ' + x.name, d: x.d }));
+    $('refPick').innerHTML = '<div class="sub">พบ ' + series.length + ' ชุดข้อมูล เลือกชุดที่จะใช้เป็นอ้างอิง:</div><div class="chips">' +
+      S.refPick.map((x, k) => '<button data-k="' + k + '">' + esc(x.n) + '</button>').join('') + '</div>';
+  } catch (err) { alert('นำเข้าไม่ได้: ' + (err.message || err)); }
+};
+$('refPick').addEventListener('click', e => {
+  const k = e.target.dataset.k;
+  if (k === undefined || !S.refPick) return;
+  addRef(S.refPick[k].n, S.refPick[k].d); $('refPick').innerHTML = ''; S.refPick = null;
+});
+fillRefSel();
+
+// ================= point map =================
+function levelAt(L, hz) { const i = Math.round(hz / DF); let m = -99; for (let k = i - 1; k <= i + 1; k++) if (k >= 0 && k < NL && L[k] > m) m = L[k]; return m; }
+function mapChips() {
+  const a = S.lastA; if (!a) return;
+  const hz = [...new Set(a.fftTop.map(x => x.hz).concat(a.protTop.map(x => x.hz)))];
+  $('mapChips').innerHTML = '<button data-hz="OA">OA</button>' + hz.map(v => '<button data-hz="' + v + '">' + v + ' Hz</button>').join('');
+}
+$('mapDet').addEventListener('toggle', () => { if ($('mapDet').open) mapChips(); });
+$('mapChips').addEventListener('click', e => { if (e.target.dataset.hz) { $('mapHz').value = e.target.dataset.hz === 'OA' ? '' : e.target.dataset.hz; $('bMap').click(); } });
+$('bMap').onclick = async () => {
+  const txt = $('mapHz').value.trim(), useOA = txt === '' || /^oa$/i.test(txt), hz = useOA ? null : parseFloat(txt);
+  if (!useOA && !(hz > 0 && hz <= 10000)) return alert('ใส่ความถี่ 0–10000 Hz หรือเว้นว่างเพื่อใช้ OA');
+  const names = selectedNames().filter(n => n.indexOf('_BG') < 0);
+  if (names.length < 2) return alert('ติ๊กเลือกจุดที่บันทึกอย่างน้อย 2 จุด (ในรายการ "จุดที่บันทึก")');
+  const pts = [];
+  for (const n of names) {
+    const d = await fetchSpectrum(n); if (!d) continue;
+    const a = analyze(d, opts());
+    pts.push({ label: n.replace(/^\d+_/, '').replace(/\.csv$/, ''), v: useOA ? a.oa : levelAt(a.L, hz) });
+  }
+  if (pts.length < 2) return;
+  const vmax = Math.max(...pts.map(p => p.v)), vmin = Math.min(...pts.map(p => p.v)), span = Math.max(1, vmax - vmin);
+  const col = v => 'hsl(' + Math.round(120 * (1 - (v - vmin) / span)) + ',75%,45%)';
+  const what = useOA ? 'OA' : hz + ' Hz' + (harm(hz) ? ' (' + harm(hz) + ')' : '');
+  const top = pts.slice().sort((x, y) => y.v - x.v);
+  // top-view layout from name prefix F/B/L/R/T
+  const sides = { F: [], B: [], L: [], R: [], T: [] };
+  pts.forEach(p => { const k = p.label.charAt(0).toUpperCase(); if (sides[k]) sides[k].push(p); });
+  const place = [];
+  const spread = (arr, fx) => arr.sort((x, y) => x.label.localeCompare(y.label, undefined, { numeric: true })).forEach((p, i) => { const t = (i + 1) / (arr.length + 1); place.push({ p, ...fx(t) }); });
+  spread(sides.F, t => ({ x: 90 + 120 * t, y: 194 }));
+  spread(sides.B, t => ({ x: 210 - 120 * t, y: 38 }));
+  spread(sides.L, t => ({ x: 40, y: 64 + 102 * t }));
+  spread(sides.R, t => ({ x: 260, y: 166 - 102 * t }));
+  spread(sides.T, t => ({ x: 90 + 120 * t, y: 115 }));
+  let svg = '';
+  if (place.length) {
+    svg = '<svg viewBox="0 0 300 234" style="width:100%;max-width:420px;display:block;margin:8px auto">' +
+      '<rect x="80" y="62" width="140" height="106" rx="6" fill="#e5e7eb" stroke="#9ca3af"/>' +
+      '<text x="4" y="229" font-size="10" fill="#6b7280">▼ หน้า (Front)</text>' +
+      '<text x="4" y="11" font-size="10" fill="#6b7280">▲ หลัง (Back)</text>' +
+      place.map(q => '<circle cx="' + q.x + '" cy="' + q.y + '" r="17" fill="' + col(q.p.v) + '"' + (q.p.v === vmax ? ' stroke="#111827" stroke-width="2.5"' : '') + '/>' +
+        '<text x="' + q.x + '" y="' + (q.y + 3) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">' + q.p.v.toFixed(1) + '</text>' +
+        '<text x="' + q.x + '" y="' + (q.y > 180 ? q.y + 29 : q.y < 50 ? q.y - 21 : q.y + 29) + '" text-anchor="middle" font-size="9" fill="#374151">' + esc(q.p.label) + '</text>').join('') +
+      '</svg>';
+  }
+  const bars = '<div class="bars">' + top.map(p => '<div class="b"><span>' + esc(p.label) + '</span><div class="tr"><div class="fl" style="width:' +
+    Math.max(4, 100 * (p.v - (vmax - 20)) / 20).toFixed(0) + '%;background:' + col(p.v) + '"></div></div><b style="text-align:right">' + p.v.toFixed(1) +
+    '</b><span class="sub" style="margin:0;text-align:right">' + (p.v === vmax ? 'ดังสุด' : sgn(p.v - vmax)) + '</span></div>').join('') + '</div>';
+  $('mapOut').innerHTML = '<div class="sub"><b>' + esc(what) + '</b> ดังที่สุดที่ <b>' + esc(top[0].label) + '</b> (' + top[0].v.toFixed(1) + ' dB) · ต่างจากจุดเบาสุด ' + span.toFixed(1) + ' dB</div>' +
+    svg + bars + (place.length < pts.length ? '<div class="leg">จุดที่ชื่อไม่ได้ขึ้นต้นด้วย F/B/L/R/T แสดงเฉพาะในกราฟแท่ง</div>' : '');
+};
+
+// ================= share result as image =================
+$('bShare').onclick = async () => {
+  const a = S.lastA;
+  if (!a) return alert('ยังไม่มีข้อมูล');
+  const W = 1080, P = 40, fC = $('cF'), cC = $('cC');
+  const hF = Math.round((W - 2 * P) * fC.height / fC.width), hC = Math.round((W - 2 * P) * cC.height / cC.width);
+  const refRows = a.ref ? a.ref.rows.slice(0, 3) : [];
+  const H = 400 + 3 * 56 + 50 + hF + 30 + hC + 40 + 9 * 40 + (a.ref ? 60 + refRows.length * 40 : 0) + 60;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const F = (sz, b) => (b ? '700 ' : '400 ') + sz + 'px system-ui,-apple-system,"Segoe UI",sans-serif';
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#111827'; g.fillRect(0, 0, W, 90);
+  g.fillStyle = '#fff'; g.font = F(36, true); g.fillText('Sound Meter', P, 58);
+  const name = S.view === 'live' ? 'LIVE' : S.curName.replace(/\.csv$/, '');
+  g.font = F(26); g.textAlign = 'right'; g.fillText(name, W - P, 58); g.textAlign = 'left';
+  let y = 130;
+  g.fillStyle = '#6b7280'; g.font = F(22);
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  g.fillText(d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) + (S.micName ? '  ·  ไมค์: ' + S.micName : ''), P, y);
+  y += 32; g.fillText($('bgInfo').textContent.slice(0, 90), P, y);
+  y += 110; g.fillStyle = '#111827'; g.font = F(26); g.fillText('OA dB(A)', P, y - 40);
+  g.font = F(84, true); g.fillText(a.oa.toFixed(1), P, y + 40);
+  g.fillStyle = a.ng ? '#fee2e2' : '#dcfce7'; g.fillRect(W - P - 200, y - 50, 200, 90);
+  g.fillStyle = a.ng ? '#dc2626' : '#15803d'; g.font = F(52, true); g.textAlign = 'center'; g.fillText(a.ng ? 'NG' : 'OK', W - P - 100, y + 16); g.textAlign = 'left';
+  y += 90;
+  const pk = a.fftTop[0] || { oaPk: 0, hz: 0 }, pr = a.protTop[0] || { db: 0, hz: 0 };
+  const jrow = (lbl, sub, val, crit, ok) => {
+    g.fillStyle = '#111827'; g.font = F(28); g.fillText(lbl, P, y);
+    g.fillStyle = '#6b7280'; g.font = F(20); g.fillText(sub, P + 300, y);
+    g.fillStyle = '#111827'; g.font = F(30, true); g.textAlign = 'right'; g.fillText(val.toFixed(1), W - P - 260, y);
+    g.fillStyle = '#6b7280'; g.font = F(22); g.fillText(crit, W - P - 140, y);
+    g.fillStyle = ok === null ? '#6b7280' : ok ? '#15803d' : '#dc2626'; g.font = F(28, true); g.fillText(ok === null ? '–' : ok ? 'OK' : 'NG', W - P, y); g.textAlign = 'left';
+    g.strokeStyle = '#e5e7eb'; g.beginPath(); g.moveTo(P, y + 18); g.lineTo(W - P, y + 18); g.stroke(); y += 56;
+  };
+  jrow('OA − Peak', 'FFT 1st @ ' + pk.hz + ' Hz', pk.oaPk, '≥ ' + cfg.oaPkTh, a.oaPkOk);
+  jrow('Peak Protrusion', '3Mt. 1st @ ' + pr.hz + ' Hz', pr.db, '≤ ' + cfg.protTh, a.protOk);
+  jrow('OA − Max', 'CPB Max @ ' + a.cpbMax.fn + ' Hz', a.oaMax, cfg.oaMaxTh > 0 ? '≥ ' + cfg.oaMaxTh : '', cfg.oaMaxTh > 0 ? a.oaMaxOk : null);
+  y += 10;
+  g.fillStyle = '#6b7280'; g.font = F(22); g.fillText('FFT 0–' + fHz(cfg.zoom || 10000) + ' Hz · dB(A)' + (a.ref ? '  ·  เส้นเทา = อ้างอิง ' + a.ref.name : ''), P, y); y += 12;
+  g.drawImage(fC, P, y, W - 2 * P, hF); y += hF + 30;
+  g.fillText('1/3 Octave · dB(A)', P, y); y += 12;
+  g.drawImage(cC, P, y, W - 2 * P, hC); y += hC + 50;
+  const cols = [P, P + 330, P + 470, P + 640, P + 800];
+  const trow = (cells, bold, color) => { g.font = F(24, bold); cells.forEach((t, k) => { g.fillStyle = (color && color[k]) || '#111827'; g.textAlign = k ? 'right' : 'left'; g.fillText(t, k ? cols[k] + 120 : cols[k], y); }); g.textAlign = 'left'; y += 40; };
+  g.fillStyle = '#6b7280';
+  trow(['FFT Max', 'dB', 'Hz', 'OA−Peak', 'แหล่ง'], true, ['#6b7280', '#6b7280', '#6b7280', '#6b7280', '#6b7280']);
+  a.fftTop.forEach((x, k) => trow([['1st', '2nd', '3rd'][k], x.db.toFixed(1), x.hz.toFixed(1), x.oaPk.toFixed(1), harm(x.hz) || '–'], false, [0, 0, 0, x.ok ? '#15803d' : '#dc2626', '#7c3aed']));
+  trow(['Peak Protrusion', 'dB', 'Hz', '', 'แหล่ง'], true, ['#6b7280', '#6b7280', '#6b7280', '#6b7280', '#6b7280']);
+  a.protTop.forEach((x, k) => trow([(k + 1) + ' (3Mt.)', x.db.toFixed(1), x.hz.toFixed(1), x.ok ? 'OK' : 'NG', harm(x.hz) || '–'], false, [0, 0, 0, x.ok ? '#15803d' : '#dc2626', '#7c3aed']));
+  trow(['CPB Max', a.cpbMax.db.toFixed(1), String(a.cpbMax.fn), 'OA−Max ' + a.oaMax.toFixed(1), ''], false);
+  if (a.ref) {
+    y += 10; g.fillStyle = '#111827'; g.font = F(24, true);
+    g.fillText('เทียบอ้างอิง: OA Δ ' + sgn(a.ref.dOA) + ' dB' + (cfg.refNorm ? ' (กราฟปรับระดับ ' + sgn(a.ref.shift) + ' dB)' : ''), P, y); y += 40;
+    refRows.forEach(r => trow([r.hz.toFixed(1) + ' Hz', r.db.toFixed(1), 'อ้างอิง ' + r.ref.toFixed(1), sgn(r.d) + ' dB', harm(r.hz) || '–'], false, [0, 0, '#6b7280', '#dc2626', '#7c3aed']));
+  }
+  y += 20; g.fillStyle = '#9ca3af'; g.font = F(18); g.fillText('ตรวจสอบเบื้องต้นหน้างาน — ไม่ใช่ผลวัดมาตรฐาน', P, y); y += 30;
+  const out = document.createElement('canvas'); out.width = W; out.height = Math.min(H, y);
+  out.getContext('2d').drawImage(c, 0, 0);
+  out.toBlob(async b => {
+    const fn = 'SoundMeter_' + name + '_' + stamp() + '.png';
+    const file = new File([b], fn, { type: 'image/png' });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: fn }); return; } }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+    const u = URL.createObjectURL(b), el = document.createElement('a');
+    el.href = u; el.download = fn; document.body.appendChild(el); el.click();
+    setTimeout(() => { URL.revokeObjectURL(u); el.remove(); }, 1000);
+  }, 'image/png');
+};
 
 connect();
 loadFiles();
