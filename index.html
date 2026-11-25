@@ -33,7 +33,7 @@ th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:500
 .pill{display:inline-block;min-width:40px;padding:2px 8px;border-radius:6px;font-weight:700}.pill.ok{background:#dcfce7}.pill.ng{background:#fee2e2}
 .seg{display:flex;gap:4px;margin:6px 0}
 .src{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0 6px}.src label{display:flex;flex-direction:column;font-size:11px;color:var(--mu);gap:2px}
-.src input,.src select{font-size:16px;padding:5px 6px;width:100%}.leg{font-size:11px;color:var(--mu);margin-top:6px;line-height:1.5}
+.src input,.src select{font-size:16px;padding:5px 6px;width:100%}.src input::placeholder{color:#9ca3af;text-align:center}.leg{font-size:11px;color:var(--mu);margin-top:6px;line-height:1.5}
 .cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:6px}.cmp label{display:flex;flex-direction:column;font-size:11px;color:var(--mu);gap:2px}.cmp select,.cmp input{font-size:15px;padding:5px;width:100%}
 .k-move{color:#7c3aed;font-weight:600}.k-fixed{color:#b45309;font-weight:600}.k-gone{color:#6b7280}.k-new{color:#dc2626;font-weight:600}.seg button{flex:1;padding:6px 0;font-size:13px}
 .files div{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bd)}.files span{flex:1;word-break:break-all}
@@ -74,9 +74,9 @@ summary{font-weight:600;cursor:pointer}
   <div class="seg" id="zoom"><button data-z="1000">0–1k</button><button data-z="2000">0–2k</button><button data-z="5000">0–5k</button><button data-z="10000">0–10k</button></div>
   <div class="lbl" style="margin-top:4px">แหล่งเสียงที่รู้ (ใส่เท่าที่รู้ · ว่าง = ไม่ใช้)</div>
   <div class="src">
-    <label><span style="color:#7c3aed">C · Comp Hz</span><input id="sComp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="41"></label>
-    <label><span style="color:#059669">F · พัดลม rpm</span><input id="sFanRpm" type="number" inputmode="decimal" step="1" min="0" placeholder="750"></label>
-    <label><span style="color:#059669">F · จำนวนใบ</span><input id="sFanBl" type="number" inputmode="numeric" step="1" min="0" placeholder="3"></label>
+    <label><span style="color:#7c3aed">C · Comp Hz</span><input id="sComp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="–"></label>
+    <label><span style="color:#059669">F · พัดลม rpm</span><input id="sFanRpm" type="number" inputmode="decimal" step="1" min="0" placeholder="–"></label>
+    <label><span style="color:#059669">F · จำนวนใบ</span><input id="sFanBl" type="number" inputmode="numeric" step="1" min="0" placeholder="–"></label>
     <label><span style="color:#4b5563">E · ไฟเลี้ยง Hz</span><select id="sSup"><option value="0">–</option><option value="50">50</option><option value="60">60</option></select></label>
     <label><span style="color:#dc2626">I · Carrier kHz</span><input id="sCar" type="number" inputmode="decimal" step="0.1" min="0" placeholder="–"></label>
     <label><span>BPF พัดลม</span><input id="sBpf" disabled placeholder="–"></label>
