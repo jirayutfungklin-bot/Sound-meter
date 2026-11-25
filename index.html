@@ -1103,10 +1103,14 @@ $('refFile').onchange = async e => {
     const series = /\.xlsx?$/i.test(f.name) ? await parseXlsx(f) : findSeries(parseCsvText(await f.text()), 0);
     if (!series.length) return alert('ไม่พบข้อมูล FFT 801 lines (0–10000 Hz ทุก 12.5 Hz) ในไฟล์นี้');
     const base = f.name.replace(/\.[^.]+$/, '');
-    if (series.length === 1) { addRef(base + ' · ' + series[0].name, series[0].d); return; }
-    S.refPick = series.map(x => ({ n: base + ' · ' + x.name, d: x.d }));
-    $('refPick').innerHTML = '<div class="sub">พบ ' + series.length + ' ชุดข้อมูล เลือกชุดที่จะใช้เป็นอ้างอิง:</div><div class="chips">' +
-      S.refPick.map((x, k) => '<button data-k="' + k + '">' + esc(x.n) + '</button>').join('') + '</div>';
+    // add every series found (e.g. FRONT and BACK) so the dropdown can switch between them at any time
+    const l = refsAll(), names = series.map(x => base + ' · ' + x.name);
+    series.forEach((x, k) => { const i = l.findIndex(r => r.n === names[k]); if (i >= 0) l.splice(i, 1); l.push({ n: names[k], d: x.d }); });
+    while (l.length > 12) l.shift();
+    store.set('refs', l); S.refName = names[0]; store.set('refName', S.refName); S.refCache = null;
+    fillRefSel(); refresh();
+    $('refPick').innerHTML = series.length > 1 ? '<div class="sub">เพิ่ม ' + series.length + ' ชุดแล้ว (' + series.map(x => esc(x.name)).join(', ') + ') — สลับได้ที่ช่อง "อ้างอิง" ด้านบน</div>' : '';
+    clearTimeout(S.pickT); S.pickT = setTimeout(() => { $('refPick').innerHTML = ''; }, 8000);
   } catch (err) { alert('นำเข้าไม่ได้: ' + (err.message || err)); }
 };
 $('refPick').addEventListener('click', e => {
