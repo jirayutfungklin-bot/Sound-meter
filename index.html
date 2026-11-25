@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sound Meter</title>
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sound Meter">
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--tx:#111827;--mu:#6b7280;--bd:#e5e7eb;--pri:#1d4ed8;--ok:#15803d;--ng:#dc2626;--wa:#b45309}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+header{position:sticky;top:0;z-index:5;background:#111827;color:#fff;display:flex;align-items:center;gap:8px;padding:8px 12px}
+header b{flex:1}.dot{width:10px;height:10px;border-radius:50%;background:#ef4444}.dot.on{background:#22c55e}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#374151}
+.card{background:var(--card);margin:8px;padding:10px;border-radius:10px;border:1px solid var(--bd)}
+.row{display:flex;align-items:center;gap:8px}.wrap{flex-wrap:wrap}
+.lbl{font-size:12px;color:var(--mu)}.sub{font-size:12px;color:var(--mu);margin-top:4px}
+.big{font-size:40px;font-weight:700;line-height:1}.judge{margin-left:auto;font-size:22px;font-weight:700;padding:6px 14px;border-radius:8px;background:#e5e7eb}
+.judge.ok{background:#dcfce7;color:var(--ok)}.judge.ng{background:#fee2e2;color:var(--ng)}
+button,select,input{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:#fff}
+button{cursor:pointer}button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}button.sel{background:#111827;color:#fff}
+button:disabled{opacity:.45}
+.prog{height:6px;background:#e5e7eb;border-radius:3px;margin-top:8px;overflow:hidden}#pbar{height:100%;width:0;background:var(--pri)}
+canvas{width:100%;display:block;touch-action:none}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;font-variant-numeric:tabular-nums}
+.mt{table-layout:fixed}.mt td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mt th{font-size:11px;white-space:normal;line-height:1.2;vertical-align:bottom}.mt td:nth-child(5),.mt th:nth-child(5),.mt td:nth-child(6),.mt th:nth-child(6){text-align:center}
+.mt tr.hd th{padding-top:12px}.hm{color:#7c3aed}.big,.jt{font-variant-numeric:tabular-nums}th,td{padding:4px 3px;text-align:right;border-bottom:1px solid var(--bd)}
+th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:500}
+.ok{color:var(--ok);font-weight:600}.ng{color:var(--ng);font-weight:700}.warn{color:var(--wa)}
+.jt{width:100%;margin-top:10px;font-size:14px}.jt td{padding:6px 3px}.jt td:nth-child(2),.jt td:nth-child(3){text-align:right}.jt td:last-child{text-align:center;width:52px}
+.pill{display:inline-block;min-width:40px;padding:2px 8px;border-radius:6px;font-weight:700}.pill.ok{background:#dcfce7}.pill.ng{background:#fee2e2}
+.seg{display:flex;gap:4px;margin:6px 0}#sComp{font-size:16px}.seg button{flex:1;padding:6px 0;font-size:13px}
+.files div{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bd)}.files span{flex:1;word-break:break-all}
+.files button{padding:4px 8px;font-size:12px}
+.set label{display:flex;justify-content:space-between;align-items:center;margin:6px 0;gap:8px}.set input{width:90px;text-align:right}
+summary{font-weight:600;cursor:pointer}
+#micGate{position:fixed;inset:0;z-index:20;background:#111827;color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+#micGate h1{margin:0;font-size:26px}#micGate p{margin:0;max-width:420px;color:#d1d5db;font-size:14px;line-height:1.5}
+#micBtn{font-size:18px;padding:14px 28px;background:#1d4ed8;color:#fff;border:0;border-radius:10px}#micErr{color:#fca5a5;font-size:13px}
+#clip{display:none;margin-top:6px;padding:6px 8px;border-radius:6px;background:#fee2e2;color:#b91c1c;font-weight:600;font-size:13px}
+</style></head><body>
+<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.0</p></div>
+<header><b>Sound Meter <span style="font-weight:400;font-size:12px;color:#9ca3af">Mobile</span></b><span id="mode" class="badge">LIVE</span><span id="conn" class="dot"></span></header>
+
+<section class="card">
+  <div class="row"><div><div class="lbl">OA dB(A)</div><div id="oa" class="big">--</div></div><div id="judge" class="judge">--</div></div>
+  <table class="jt" id="judgeTbl"></table>
+  <div id="title" class="sub"></div>
+  <div id="bgInfo" class="sub"></div>
+  <div id="clip">⚠ เสียงดังเกินไมค์ (clip) — ถอยห่างออกมา ค่าที่ได้ไม่ถูกต้อง</div>
+</section>
+
+<section class="card">
+  <div class="row wrap">
+    <button id="bLive" class="sel">LIVE</button>
+    <select id="sec"><option value="15">15 s</option><option value="30">30 s</option><option value="60">60 s</option></select>
+    <input id="label" value="P1" size="5" maxlength="16">
+    <button id="bMeas" class="pri">MEASURE</button>
+    <button id="bBg">BG</button>
+    <button id="bCancel" style="display:none">CANCEL</button>
+  </div>
+  <div class="prog"><div id="pbar"></div></div>
+  <div id="pmsg" class="sub">LIVE = ดูค่าสด (เฉลี่ย ~1 s) · MEASURE = เฉลี่ยเชิงเส้นแล้วบันทึก · BG = วัดเสียงพื้นหลัง (ปิดเครื่อง)</div>
+</section>
+
+<section class="card">
+  <div class="lbl">FFT · 800 lines · 12.5 Hz · dB(A)</div>
+  <div class="seg" id="zoom"><button data-z="1000">0–1k</button><button data-z="2000">0–2k</button><button data-z="5000">0–5k</button><button data-z="10000">0–10k</button></div>
+  <div class="row" style="margin-bottom:4px"><span class="lbl" style="color:#7c3aed">ฮาร์โมนิกคอมเพรสเซอร์ Hz</span><input id="sComp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="เช่น 41" style="width:90px"><span class="sub" style="margin:0">ว่าง = ปิด</span></div>
+  <canvas id="cF"></canvas>
+  <div id="cur" class="sub">แตะ/ลากบนกราฟเพื่ออ่านค่า</div>
+</section>
+
+<section class="card">
+  <div class="lbl">1/3 Octave (CPB) · dB(A)</div>
+  <canvas id="cC"></canvas>
+</section>
+
+<section class="card" id="tbls"></section>
+
+<section class="card">
+  <details open><summary>จุดที่บันทึก</summary>
+    <div id="files" class="files"></div>
+    <div class="row wrap" style="margin-top:8px">
+      <button id="bExp">Export FFT (Book1)</button>
+      <button id="bSum">Export สรุป</button>
+      <button id="bRef">Refresh</button>
+      <button id="bDelAll">ลบทั้งหมด</button>
+    </div>
+    <div id="fsInfo" class="sub"></div>
+  </details>
+</section>
+
+<section class="card set">
+  <details><summary>ตั้งค่า</summary>
+    <label>เกณฑ์ Peak Protrusion (NG เมื่อ &gt;) dB <input id="sProt" type="number" step="0.5"></label>
+    <label>เกณฑ์ OA − Peak (NG เมื่อ &lt;) dB <input id="sOaPk" type="number" step="0.5"></label>
+    <label>เกณฑ์ OA − Max (CPB) (NG เมื่อ &lt;) dB <input id="sOaMax" type="number" step="0.5" placeholder="0 = ไม่ตัดสิน"></label>
+    <label>ระยะวัดจริง (ปรับเป็น 1 m) m <input id="sDist" type="number" step="0.1" min="0.1"></label>
+    <label>แก้ค่าเสียงพื้นหลัง (BG) <input id="sUseBg" type="checkbox" style="width:auto"></label>
+    <hr>
+    <label>Offset calibration (มือถือนี้) dB <input id="sOff" type="number" step="0.1"></label>
+    <div class="row"><button id="bOff">บันทึก offset</button><span id="offNow" class="sub"></span></div>
+    <div id="micInfo" class="sub" style="margin:6px 0"></div>
+    <label style="margin-top:10px">เทียบเครื่องวัดอ้างอิง: ค่าที่อ่านได้ dB(A) <input id="sRefDb" type="number" step="0.1"></label>
+    <div class="row"><button id="bMatch">ปรับ offset ให้ตรง (ใช้ค่า LIVE)</button></div>
+    <div class="sub">วางรูไมค์มือถือ (ส่วนใหญ่อยู่ขอบล่าง) ชิดไมค์ของเครื่องวัดอ้างอิง วัดแหล่งเสียงเดียวกันในโหมด LIVE แล้วกรอกค่า OA ของเครื่องอ้างอิง</div>
+  </details>
+</section>
+
+<script>
+// ===== Phone-mic engine: replaces the ESP32 (same message protocol as the firmware) =====
+{
+  const FS = 51200, N = 4096, HOP = 2048, NLINES = 801, DFq = FS / N, FPS = FS / HOP;
+  const DEFAULT_SENS = -38;          // assumed phone mic: -38 dBFS @ 94 dB SPL (calibrate!)
+  const DB_FLOOR = -30;
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem('smf_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem('smf_' + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+    del(k) { try { localStorage.removeItem('smf_' + k); } catch (e) {} }
+  };
+
+  // ---------- DSP tables ----------
+  const win = new Float64Array(N), lineScale = new Float64Array(NLINES);
+  const re = new Float64Array(N), im = new Float64Array(N), sig = new Float64Array(N);
+  const bitrev = new Uint16Array(N), twc = new Float64Array(N / 2), tws = new Float64Array(N / 2);
+  (() => {
+    for (let i = 0; i < N; i++) { let r = 0; for (let b = 0; b < 12; b++) r |= ((i >> b) & 1) << (11 - b); bitrev[i] = r; }
+    for (let k = 0; k < N / 2; k++) { twc[k] = Math.cos(2 * Math.PI * k / N); tws[k] = -Math.sin(2 * Math.PI * k / N); }
+    let sumw = 0;
+    for (let i = 0; i < N; i++) { win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N); sumw += win[i]; }
+    const rms94 = Math.pow(10, DEFAULT_SENS / 20) / Math.SQRT2, ref = rms94 * rms94;
+    const aw = f => {
+      if (f <= 0) return 0;
+      const f2 = f * f;
+      const ra = (12194 ** 2 * f2 * f2) / ((f2 + 20.6 ** 2) * Math.sqrt((f2 + 107.7 ** 2) * (f2 + 737.9 ** 2)) * (f2 + 12194 ** 2));
+      return Math.pow(10, (20 * Math.log10(ra) + 2.0) / 10);
+    };
+    for (let k = 0; k < NLINES; k++) lineScale[k] = (k ? 2 : 1) / (sumw * sumw) / ref * aw(k * DFq);
+  })();
+  function fft() {
+    for (let i = 0; i < N; i++) { const j = bitrev[i]; if (j > i) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let len = 2; len <= N; len <<= 1) {
+      const half = len >> 1, step = N / len;
+      for (let i = 0; i < N; i += len) for (let k = 0; k < half; k++) {
+        const wr = twc[k * step], wi = tws[k * step], a = i + k, b = a + half;
+        const tr = re[b] * wr - im[b] * wi, ti = re[b] * wi + im[b] * wr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+      }
+    }
+  }
+
+  // ---------- state ----------
+  const live = new Float64Array(NLINES), frame = new Float64Array(NLINES), msum = new Float64Array(NLINES);
+  let liveValid = false, firstLive = true, warm = 0, newSamples = 0, clipHold = 0;
+  let meas = null;                         // {sec,label,bg,count,target}
+  let off = LS.get('off', 0), calibrated = LS.get('calibrated', false);
+  const alpha = 1 - Math.exp(-1 / FPS);    // ~1 s exponential average
+  let ctx = null, srcRate = FS, rsPos = 0, rsPrev = 0, engine = null, wakeLock = null, trackInfo = '';
+
+  const toDb = p => { if (!(p > 0)) return DB_FLOOR; const v = 94 + off + 10 * Math.log10(p); return v < DB_FLOOR ? DB_FLOOR : v; };
+
+  function processFrame() {
+    let mean = 0;
+    for (let i = 0; i < N; i++) mean += sig[i];
+    mean /= N;
+    for (let i = 0; i < N; i++) { re[i] = (sig[i] - mean) * win[i]; im[i] = 0; }
+    fft();
+    for (let k = 0; k < NLINES; k++) frame[k] = (re[k] * re[k] + im[k] * im[k]) * lineScale[k];
+    if (firstLive) { live.set(frame); firstLive = false; } else for (let k = 0; k < NLINES; k++) live[k] += alpha * (frame[k] - live[k]);
+    liveValid = true;
+    if (meas) {
+      for (let k = 0; k < NLINES; k++) msum[k] += frame[k];
+      if (++meas.count >= meas.target) finishMeasure();
+    }
+  }
+
+  // block-based input at 51.2 kHz
+  const blk = new Float64Array(HOP); let blkN = 0;
+  function feed51k(x) {
+    blk[blkN++] = x;
+    if (blkN === HOP) {
+      sig.copyWithin(0, HOP); sig.set(blk, N - HOP); blkN = 0;
+      if (warm < 3) { warm++; return; }
+      processFrame();
+    }
+  }
+  // streaming linear resampler (only used when the browser refuses a 51.2 kHz context)
+  function onAudio(buf) {
+    for (let i = 0; i < buf.length; i++) if (buf[i] > 0.99 || buf[i] < -0.99) { clipHold = 25; break; }
+    if (srcRate === FS) { for (let i = 0; i < buf.length; i++) feed51k(buf[i]); return; }
+    const step = srcRate / FS;
+    for (let i = 0; i < buf.length; i++) {
+      const cur = buf[i];
+      while (rsPos <= 1) { feed51k(rsPrev + (cur - rsPrev) * rsPos); rsPos += step; }
+      rsPos -= 1; rsPrev = cur;
+    }
+  }
+
+  function finishMeasure() {
+    const m = meas; meas = null;
+    const d = []; for (let k = 0; k < NLINES; k++) d.push(+toDb(msum[k] / m.count).toFixed(2));
+    const name = saveFile(m, d);
+    releaseWake();
+    engine && engine.emit({ t: 'M', n: name, bg: m.bg ? 1 : 0, d });
+    engine && engine.info();
+  }
+
+  // ---------- storage (replaces LittleFS) ----------
+  function fileIndex() { return LS.get('index', []); }
+  function saveFile(m, d) {
+    let seq = LS.get('seq', 1);
+    const lbl = (m.label || 'P').replace(/[^A-Za-z0-9_-]/g, '') || 'P';
+    const name = String(seq).padStart(4, '0') + (m.bg ? '_BG' : '_' + lbl) + '.csv';
+    LS.set('seq', seq + 1);
+    let t = '#label,' + (m.bg ? 'BG' : lbl) + '\n#type,' + (m.bg ? 'BG' : 'MEAS') + '\n#seconds,' + m.sec + '\n#averages,' + m.target +
+            '\n#offset_dB,' + off.toFixed(2) + '\n#date,' + new Date().toISOString() + '\n#device,' + navigator.userAgent.replace(/,/g, ' ') + '\nNo,Hz,dBA\n';
+    d.forEach((v, k) => { t += (k + 1) + ',' + (k * DFq) + ',' + v + '\n'; });
+    if (!LS.set('f_' + name, t)) { alert('หน่วยความจำเต็ม — Export แล้วลบข้อมูลเก่าก่อน'); return name; }
+    const idx = fileIndex(); idx.push({ n: name, s: t.length }); LS.set('index', idx);
+    return name;
+  }
+  function usedKB() { let s = 0; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); s += (localStorage.getItem(k) || '').length; } } catch (e) {} return s; }
+
+  const realFetch = window.fetch.bind(window);
+  window.fetch = async (u, o) => {
+    const url = new URL(u, location.href), p = url.pathname, n = url.searchParams.get('n');
+    const R = b => ({ ok: true, json: async () => JSON.parse(b), text: async () => b });
+    if (p.endsWith('/api/files')) return R(JSON.stringify(fileIndex()));
+    if (p.endsWith('/api/file')) return R(LS.get('f_' + n, ''));
+    if (p.endsWith('/api/del')) {
+      const idx = fileIndex();
+      const del = n === '*' ? idx.map(x => x.n) : [n];
+      del.forEach(x => LS.del('f_' + x));
+      LS.set('index', idx.filter(x => del.indexOf(x.n) < 0));
+      engine && engine.info();
+      return R('ok');
+    }
+    return realFetch(u, o);
+  };
+
+  // ---------- wake lock ----------
+  async function holdWake() { try { if ('wakeLock' in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+  function releaseWake() { /* keep screen on while app is open; released by the browser when hidden */ }
+
+  // ---------- microphone ----------
+  async function startMic() {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
+    });
+    const forceNative = location.hash === '#native';
+    try { ctx = forceNative ? new AudioContext() : new AudioContext({ sampleRate: FS }); }
+    catch (e) { ctx = new AudioContext(); }
+    srcRate = ctx.sampleRate;
+    if (ctx.state !== 'running') await ctx.resume();
+    const src = ctx.createMediaStreamSource(stream);
+    const sink = ctx.createGain(); sink.gain.value = 0; sink.connect(ctx.destination);
+    if (ctx.audioWorklet) {
+      const code = "class C extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(2048);this.n=0}" +
+        "process(i){const c=i[0]&&i[0][0];if(c){for(let k=0;k<c.length;k++){this.b[this.n++]=c[k];if(this.n===2048){this.port.postMessage(this.b);this.b=new Float32Array(2048);this.n=0}}}return true}}" +
+        "registerProcessor('cap',C)";
+      const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
+      await ctx.audioWorklet.addModule(url);
+      const node = new AudioWorkletNode(ctx, 'cap', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });
+      node.port.onmessage = e => onAudio(e.data);
+      src.connect(node); node.connect(sink);
+    } else {
+      const sp = ctx.createScriptProcessor(4096, 1, 1);
+      sp.onaudioprocess = e => onAudio(e.inputBuffer.getChannelData(0));
+      src.connect(sp); sp.connect(sink);
+    }
+    const st = stream.getAudioTracks()[0].getSettings ? stream.getAudioTracks()[0].getSettings() : {};
+    const flag = v => v === undefined ? '?' : (v ? 'ON' : 'off');
+    trackInfo = 'Sample rate ' + srcRate + ' Hz' + (srcRate !== FS ? ' (resample → 51200)' : '') +
+      ' · AGC ' + flag(st.autoGainControl) + ' · NS ' + flag(st.noiseSuppression) + ' · EC ' + flag(st.echoCancellation);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx && ctx.state !== 'running') ctx.resume(); });
+    holdWake();
+  }
+
+  // ---------- fake WebSocket so the UI code stays identical to the ESP32 version ----------
+  class LocalEngine {
+    constructor() {
+      this.readyState = 0; engine = this;
+      const gate = document.getElementById('micGate');
+      gate.style.display = 'flex';
+      document.getElementById('micBtn').onclick = async () => {
+        document.getElementById('micErr').textContent = '';
+        try {
+          await startMic();
+          gate.style.display = 'none';
+          this.readyState = 1; this.onopen && this.onopen(); this.info();
+          setInterval(() => this.tick(), 160);
+        } catch (e) {
+          document.getElementById('micErr').textContent = 'เปิดไมค์ไม่ได้: ' + (e.message || e) + ' — ตรวจสิทธิ์ไมโครโฟนของเบราว์เซอร์ และต้องเปิดผ่าน https';
+        }
+      };
+    }
+    emit(o) { this.onmessage && this.onmessage({ data: JSON.stringify(o) }); }
+    info() {
+      this.emit({ t: 'I', off, used: usedKB() * 2, total: 5 * 1024 * 1024 });
+      const mi = document.getElementById('micInfo');
+      if (mi) mi.innerHTML = trackInfo + (calibrated ? '' : '<br><b class="warn">ยังไม่ได้ calibrate — ค่า dB เป็นค่าประมาณ</b>');
+    }
+    tick() {
+      if (!liveValid) return;
+      const d = new Array(NLINES);
+      for (let k = 0; k < NLINES; k++) d[k] = +toDb(live[k]).toFixed(1);
+      if (clipHold > 0) clipHold--;
+      this.emit({ t: 'L', a: meas ? 1 : 0, b: meas && meas.bg ? 1 : 0, p: meas ? meas.count / meas.target : 0, c: clipHold > 0 ? 1 : 0, d });
+    }
+    send(s) {
+      const c = s.split(':');
+      if (c[0] === 'meas' || c[0] === 'bg') {
+        if (meas) return;
+        const sec = Math.max(5, Math.min(120, parseInt(c[1], 10) || 15));
+        msum.fill(0);
+        meas = { sec, label: c[2] || 'P', bg: c[0] === 'bg', count: 0, target: sec * FPS };
+        holdWake();
+      } else if (c[0] === 'cancel') { meas = null; }
+      else if (c[0] === 'cal') {
+        const v = parseFloat(c[1]);
+        if (!isNaN(v) && v > -60 && v < 60) { off = v; calibrated = true; LS.set('off', off); LS.set('calibrated', true); }
+        this.info();
+      }
+    }
+    close() {}
+  }
+  window.WebSocket = LocalEngine;
+}
+
+</script>
+<script>
+// <ANALYSIS>
+const NL = 801, DF = 12.5, ENBW = 1.5;
+const CPB_FN = [100,125,160,200,250,315,400,500,630,800,1000,1250,1600,2000,2500,3150,4000,5000,6300,8000,10000];
+const p10 = x => Math.pow(10, x / 10);
+const l10 = p => p > 0 ? 10 * Math.log10(p) : -99;
+
+function oaOf(L) { let s = 0; for (let i = 0; i < L.length; i++) s += p10(L[i]); return l10(s / ENBW); }
+
+function bgCorrect(L, B) {
+  const out = new Array(NL); let weak = 0;
+  for (let i = 0; i < NL; i++) {
+    const d = L[i] - B[i];
+    if (d >= 10) out[i] = L[i];
+    else if (d >= 6) out[i] = l10(p10(L[i]) - p10(B[i]));
+    else { out[i] = L[i] - 1.26; if (i * DF >= 100) weak++; }   // ISO 3744 cap (K1 at 6 dB)
+  }
+  return { L: out, weak };
+}
+
+function analyze(raw, o) {
+  let L = raw.slice(), weak = 0, bgOA = null;
+  if (o.useBg && o.bg) { const r = bgCorrect(L, o.bg); L = r.L; weak = r.weak; bgOA = oaOf(o.bg); }
+  if (o.dist && o.dist !== 1) { const c = 20 * Math.log10(o.dist); L = L.map(v => v + c); }
+  const oa = oaOf(L);
+  const rawOA = oaOf(raw);
+
+  const pk = [];
+  for (let i = 1; i < NL - 1; i++) if (L[i] > L[i - 1] && L[i] >= L[i + 1]) pk.push(i);
+
+  const fftTop = pk.map(i => ({ i, db: L[i] })).sort((a, b) => b.db - a.db).slice(0, 3)
+    .map(x => ({ ...x, hz: x.i * DF, oaPk: oa - x.db, ok: (oa - x.db) >= o.oaPkTh }));
+
+  // Peak Protrusion (Delta 3Mt.): peak − mean(dB) of 3 neighbouring peaks each side
+  const prot = [];
+  for (let j = 3; j < pk.length - 3; j++) {
+    let s = 0;
+    for (let k = 1; k <= 3; k++) s += L[pk[j - k]] + L[pk[j + k]];
+    prot.push({ i: pk[j], db: L[pk[j]] - s / 6 });
+  }
+  const protTop = prot.sort((a, b) => b.db - a.db).slice(0, 3)
+    .map(x => ({ ...x, hz: x.i * DF, ok: x.db <= o.protTh }));
+
+  // 1/3 octave from FFT lines (fractional bin overlap, Hanning ENBW correction)
+  const cpb = CPB_FN.map(fn => {
+    const fc = 1000 * Math.pow(2, Math.round(3 * Math.log2(fn / 1000)) / 3);
+    const lo = fc * Math.pow(2, -1 / 6), hi = fc * Math.pow(2, 1 / 6);
+    let p = 0;
+    for (let i = 0; i < NL; i++) {
+      const a = i * DF - DF / 2, b = i * DF + DF / 2;
+      const ov = Math.min(b, hi) - Math.max(a, lo);
+      if (ov > 0) p += p10(L[i]) * ov / DF;
+    }
+    return { fn, db: l10(p / ENBW) };
+  });
+  let cpbMax = cpb[0];
+  cpb.forEach(c => { if (c.db > cpbMax.db) cpbMax = c; });
+
+  const oaMax = oa - cpbMax.db;
+  const oaMaxOk = !(o.oaMaxTh > 0) || oaMax >= o.oaMaxTh;
+  const oaPkOk = fftTop.every(x => x.ok), protOk = protTop.every(x => x.ok);
+  const ng = !oaPkOk || !protOk || !oaMaxOk;
+  return { L, oa, rawOA, bgOA, weak, fftTop, protTop, cpb, cpbMax, oaMax, oaPkOk, protOk, oaMaxOk, ng };
+}
+// </ANALYSIS>
+
+// ---------------- state & settings ----------------
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('sm_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('sm_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const cfg = Object.assign({ protTh: 15, oaPkTh: 6, oaMaxTh: 6, dist: 1, comp: 0, useBg: true, zoom: 10000 }, store.get('cfg', {}));
+const S = { view: 'live', live: null, cur: null, curName: '', bg: store.get('bg', null), bgName: store.get('bgName', ''),
+            files: [], off: 0, cursor: -1, lastA: null, measuring: false, ws: null };
+
+function opts() { return { useBg: cfg.useBg, bg: S.bg, dist: cfg.dist, protTh: cfg.protTh, oaPkTh: cfg.oaPkTh, oaMaxTh: cfg.oaMaxTh }; }
+function harm(hz) {
+  if (!cfg.comp || cfg.comp <= 0) return '';
+  const n = Math.round(hz / cfg.comp);
+  return (n >= 1 && n <= 40 && Math.abs(hz - n * cfg.comp) <= DF / 2) ? n + '×' : '';
+}
+const f1 = v => (v <= -98 ? '--' : v.toFixed(1));
+const fHz = hz => hz >= 1000 ? parseFloat((hz / 1000).toFixed(3)) + 'k' : String(hz);
+
+// ---------------- rendering ----------------
+function render(raw) {
+  const a = analyze(raw, opts());
+  S.lastA = a;
+  $('oa').textContent = a.oa.toFixed(1);
+  const j = $('judge');
+  j.textContent = a.ng ? 'NG' : 'OK';
+  j.className = 'judge ' + (a.ng ? 'ng' : 'ok');
+  $('title').textContent = S.view === 'live' ? 'LIVE (เฉลี่ย ~1 s) — ค่า Protrusion แกว่งได้ ใช้ MEASURE เพื่อตัดสิน' : 'ผลวัด: ' + S.curName;
+
+  let bi = '';
+  if (cfg.useBg && S.bg) {
+    const dOA = a.rawOA - a.bgOA;
+    bi = 'BG: ' + S.bgName + ' (OA ' + a.bgOA.toFixed(1) + ') · ΔOA ' + dOA.toFixed(1) + ' dB';
+    if (dOA < 6) bi += ' <span class="ng">⚠ เสียงพื้นหลังดังเกิน (ΔOA &lt; 6 dB) ผลเชื่อถือได้น้อย</span>';
+    else if (a.weak > 0) bi += ' <span class="warn">· ' + a.weak + ' lines ΔL &lt; 6 dB</span>';
+  } else bi = cfg.useBg ? '<span class="warn">ยังไม่มี BG — ไม่ได้แก้ค่าเสียงพื้นหลัง</span>' : 'ปิดการแก้ค่า BG';
+  if (cfg.dist !== 1) bi += ' · ปรับระยะ ' + cfg.dist + ' m → 1 m';
+  $('bgInfo').innerHTML = bi;
+
+  drawJudge(a);
+  drawFFT(a);
+  drawCPB(a);
+  drawTables(a);
+}
+
+function drawJudge(a) {
+  const pk = a.fftTop[0] || { oaPk: 0, hz: 0 }, pr = a.protTop[0] || { db: 0, hz: 0 };
+  const row = (name, val, crit, ok, note) =>
+    '<tr><td>' + name + '<div class="sub" style="margin:0">' + note + '</div></td><td><b>' + val.toFixed(1) + '</b></td><td class="sub">' + crit +
+    '</td><td><span class="pill ' + (ok ? 'ok' : 'ng') + '">' + (ok ? 'OK' : 'NG') + '</span></td></tr>';
+  $('judgeTbl').innerHTML =
+    row('OA − Peak', pk.oaPk, '≥ ' + cfg.oaPkTh, a.oaPkOk, 'FFT 1st @ ' + pk.hz + ' Hz') +
+    row('Peak Protrusion', pr.db, '≤ ' + cfg.protTh, a.protOk, '3Mt. 1st @ ' + pr.hz + ' Hz') +
+    (cfg.oaMaxTh > 0
+      ? row('OA − Max', a.oaMax, '≥ ' + cfg.oaMaxTh, a.oaMaxOk, 'CPB Max @ ' + a.cpbMax.fn + ' Hz')
+      : '<tr><td>OA − Max<div class="sub" style="margin:0">CPB Max @ ' + a.cpbMax.fn + ' Hz</div></td><td><b>' + a.oaMax.toFixed(1) + '</b></td><td class="sub">—</td><td class="sub">ไม่ตัดสิน</td></tr>');
+}
+
+function drawTables(a) {
+  // one fixed 6-column grid for all three tables -> columns never move
+  const COLS = '<colgroup><col style="width:28%"><col style="width:12%"><col style="width:17%"><col style="width:17%"><col style="width:11%"><col style="width:15%"></colgroup>';
+  const cell = v => '<td>' + v + '</td>';
+  const res = ok => '<td class="' + (ok ? 'ok' : 'ng') + '">' + (ok ? 'OK' : 'NG') + '</td>';
+  const hc = hz => '<td class="hm">' + (harm(hz) || '–') + '</td>';
+  const name = ['1st', '2nd (Ref.)', '3rd (Ref.)'];
+  let h = '<table class="mt">' + COLS +
+    '<tr><th>FFT Max</th><th>dB</th><th>Hz</th><th>OA−Peak</th><th>ผล</th><th>Comp</th></tr>';
+  for (let k = 0; k < 3; k++) {
+    const x = a.fftTop[k];
+    h += x ? '<tr>' + cell(name[k]) + cell(x.db.toFixed(1)) + cell(x.hz.toFixed(1)) + cell(x.oaPk.toFixed(1)) + res(x.ok) + hc(x.hz) + '</tr>'
+           : '<tr>' + cell(name[k]) + '<td colspan="5"></td></tr>';
+  }
+  h += '<tr class="hd"><th>Peak Protrusion</th><th>dB</th><th>Hz</th><th></th><th>ผล</th><th>Comp</th></tr>';
+  for (let k = 0; k < 3; k++) {
+    const x = a.protTop[k];
+    h += x ? '<tr>' + cell((k + 1) + ' (3Mt.)') + cell(x.db.toFixed(1)) + cell(x.hz.toFixed(1)) + '<td></td>' + res(x.ok) + hc(x.hz) + '</tr>'
+           : '<tr>' + cell(String(k + 1)) + '<td colspan="5"></td></tr>';
+  }
+  h += '<tr class="hd"><th>CPB Max</th><th>dB</th><th>Hz</th><th>OA−Max</th><th>ผล</th><th></th></tr>' +
+       '<tr>' + cell('1/3 oct') + cell(a.cpbMax.db.toFixed(1)) + cell(a.cpbMax.fn.toFixed(1)) + cell(a.oaMax.toFixed(1)) +
+       (cfg.oaMaxTh > 0 ? res(a.oaMaxOk) : '<td class="hm">–</td>') + '<td></td></tr></table>';
+  $('tbls').innerHTML = h;
+}
+
+function setupCanvas(c, h) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth;
+  c.width = w * dpr; c.height = h * dpr; c.style.height = h + 'px';
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { g, w, h };
+}
+function yRange(vals) {
+  let mx = -99, mn = 99;
+  vals.forEach(v => { if (v > mx) mx = v; if (v < mn) mn = v; });
+  const ymax = Math.ceil((mx + 5) / 10) * 10;
+  const ymin = Math.max(ymax - 80, Math.max(-10, Math.floor(mn / 10) * 10));
+  return [ymin, ymax];
+}
+const MF = { l: 32, r: 8, t: 8, b: 20 };
+
+function drawFFT(a) {
+  const c = $('cF'), { g, w, h } = setupCanvas(c, 250), m = MF;
+  const fmax = cfg.zoom || 10000, nVis = Math.min(NL - 1, Math.round(fmax / DF));
+  const pw = w - m.l - m.r, ph = h - m.t - m.b;
+  const [ymin, ymax] = yRange(a.L.slice(1, nVis + 1));
+  const X = f => m.l + f / fmax * pw, Y = v => m.t + (ymax - Math.max(ymin, Math.min(ymax, v))) / (ymax - ymin) * ph;
+  g.clearRect(0, 0, w, h); g.font = '10px system-ui'; g.fillStyle = '#6b7280'; g.strokeStyle = '#e5e7eb'; g.lineWidth = 1;
+  g.textAlign = 'right';
+  for (let v = ymin; v <= ymax; v += 10) { g.beginPath(); g.moveTo(m.l, Y(v)); g.lineTo(w - m.r, Y(v)); g.stroke(); g.fillText(v, m.l - 3, Y(v) + 3); }
+  g.textAlign = 'center';
+  const step = fmax / 10;
+  for (let f = 0; f <= fmax; f += step) { g.beginPath(); g.moveTo(X(f), m.t); g.lineTo(X(f), h - m.b); g.stroke(); g.fillText(f ? fHz(f) : '0', X(f), h - 6); }
+  if (cfg.comp > 0 && X(cfg.comp) - X(0) < 3) {
+    g.fillStyle = '#7c3aed'; g.textAlign = 'left'; g.fillText('กด 0–1k เพื่อดูเส้นฮาร์โมนิก', m.l + 4, m.t + 8); g.textAlign = 'center';
+  } else if (cfg.comp > 0) {
+    // harmonic lines 1×..40× of compressor frequency; labels when there is room
+    const sp = X(cfg.comp) - X(0), every = sp >= 22 ? 1 : sp >= 11 ? 2 : sp >= 5 ? 5 : 10;
+    g.save(); g.setLineDash([4, 3]); g.strokeStyle = 'rgba(124,58,237,.6)'; g.fillStyle = '#7c3aed'; g.lineWidth = 1;
+    for (let n = 1; n <= 40 && n * cfg.comp <= fmax; n++) {
+      const x = X(n * cfg.comp);
+      { g.beginPath(); g.moveTo(x, m.t + 10); g.lineTo(x, h - m.b); g.stroke(); }
+      if (n % every === 0 || n === 1) g.fillText(n + '×', x, m.t + 8);
+    }
+    g.restore();
+  }
+  g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
+  g.strokeStyle = '#1e3a8a'; g.lineWidth = 1.2; g.beginPath();
+  for (let i = 0; i <= nVis; i++) { const x = X(i * DF), y = Y(a.L[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+  g.stroke(); g.restore();
+  g.font = '10px system-ui';
+  a.protTop.forEach((p, k) => {
+    if (p.hz > fmax) return;
+    const x = X(p.hz), y = Y(a.L[p.i]);
+    g.fillStyle = p.ok ? '#f59e0b' : '#dc2626';
+    g.beginPath(); g.moveTo(x, y - 12); g.lineTo(x - 4, y - 19); g.lineTo(x + 4, y - 19); g.closePath(); g.fill();
+    g.fillText('P' + (k + 1), x, y - 21);
+  });
+  a.fftTop.forEach((p, k) => {
+    if (p.hz > fmax) return;
+    const x = X(p.hz), y = Y(p.db);
+    g.strokeStyle = p.ok ? '#16a34a' : '#dc2626'; g.lineWidth = 1.5;
+    g.beginPath(); g.arc(x, y, 4, 0, 7); g.stroke();
+    g.fillStyle = g.strokeStyle; g.fillText(String(k + 1), x + 9, y + 3);
+  });
+  if (S.cursor >= 0 && S.cursor <= nVis) {
+    const i = S.cursor, x = X(i * DF);
+    g.strokeStyle = '#ef4444'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, m.t); g.lineTo(x, h - m.b); g.stroke();
+    const hm = harm(i * DF);
+    $('cur').textContent = (i * DF) + ' Hz : ' + a.L[i].toFixed(1) + ' dB(A)' + (hm ? '  (' + hm + ' comp.)' : '');
+  }
+  document.querySelectorAll('#zoom button').forEach(b => b.classList.toggle('sel', +b.dataset.z === fmax));
+}
+
+function drawCPB(a) {
+  const c = $('cC'), { g, w, h } = setupCanvas(c, 200), m = { l: 32, r: 6, t: 8, b: 34 };
+  const pw = w - m.l - m.r, ph = h - m.t - m.b, n = a.cpb.length, bw = pw / n;
+  const [ymin, ymax] = yRange(a.cpb.map(x => x.db));
+  const Y = v => m.t + (ymax - Math.max(ymin, Math.min(ymax, v))) / (ymax - ymin) * ph;
+  g.clearRect(0, 0, w, h); g.font = '10px system-ui'; g.fillStyle = '#6b7280'; g.strokeStyle = '#e5e7eb';
+  g.textAlign = 'right';
+  for (let v = ymin; v <= ymax; v += 10) { g.beginPath(); g.moveTo(m.l, Y(v)); g.lineTo(w - m.r, Y(v)); g.stroke(); g.fillText(v, m.l - 3, Y(v) + 3); }
+  a.cpb.forEach((b, k) => {
+    const x = m.l + k * bw;
+    g.fillStyle = b === a.cpbMax ? '#f59e0b' : '#93c5fd';
+    g.fillRect(x + 1, Y(b.db), bw - 2, h - m.b - Y(b.db));
+    g.save(); g.translate(x + bw / 2 + 3, h - m.b + 4); g.rotate(-Math.PI / 2); g.textAlign = 'right'; g.fillStyle = '#6b7280';
+    g.fillText(fHz(b.fn), 0, 0); g.restore();
+  });
+}
+
+function cursorFrom(ev) {
+  const r = $('cF').getBoundingClientRect();
+  const cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+  const pw = r.width - MF.l - MF.r;
+  S.cursor = Math.max(0, Math.min(NL - 1, Math.round((cx - MF.l) / pw * (cfg.zoom || 10000) / DF)));
+  if (S.lastA) drawFFT(S.lastA);
+}
+$('cF').addEventListener('touchstart', cursorFrom, { passive: true });
+$('cF').addEventListener('touchmove', cursorFrom, { passive: true });
+$('cF').addEventListener('click', cursorFrom);
+$('zoom').addEventListener('click', e => { const z = +e.target.dataset.z; if (z) { cfg.zoom = z; store.set('cfg', cfg); refresh(); } });
+
+function refresh() {
+  const d = S.view === 'live' ? S.live : S.cur;
+  if (d) render(d);
+}
+
+// ---------------- websocket ----------------
+function connect() {
+  const ws = new WebSocket('ws://' + location.host + '/ws');
+  S.ws = ws;
+  ws.onopen = () => $('conn').classList.add('on');
+  ws.onclose = () => { $('conn').classList.remove('on'); };
+  ws.onmessage = e => {
+    let m; try { m = JSON.parse(e.data); } catch (x) { return; }
+    if (m.t === 'L') {
+      S.live = m.d;
+      setMeasuring(m.a === 1, m.p, m.b === 1);
+      $('clip').style.display = m.c ? 'block' : 'none';
+      if (S.view === 'live') render(m.d);
+    } else if (m.t === 'M') onResult(m);
+    else if (m.t === 'I') {
+      S.off = m.off;
+      $('offNow').textContent = 'ปัจจุบัน ' + m.off.toFixed(2) + ' dB';
+      $('sOff').value = m.off.toFixed(2);
+      $('fsInfo').textContent = 'ข้อมูลในมือถือ ~' + (m.used / 1024).toFixed(0) + ' / ' + (m.total / 1024).toFixed(0) + ' KB — Export เก็บไว้เป็นระยะ';
+    }
+  };
+}
+function send(s) { if (S.ws && S.ws.readyState === 1) S.ws.send(s); else alert('ยังไม่ได้เปิดไมค์'); }
+
+function setMeasuring(on, p, bg) {
+  S.measuring = on;
+  $('pbar').style.width = on ? (p * 100).toFixed(0) + '%' : '0';
+  $('bCancel').style.display = on ? '' : 'none';
+  $('bMeas').disabled = on; $('bBg').disabled = on;
+  if (on) $('pmsg').textContent = (bg ? 'กำลังวัด BG… ' : 'กำลังวัด ' + $('label').value + '… ') + (p * 100).toFixed(0) + '% — อยู่นิ่ง ๆ';
+}
+
+function onResult(m) {
+  if (m.bg) {
+    S.bg = m.d; S.bgName = m.n; store.set('bg', S.bg); store.set('bgName', S.bgName);
+    $('pmsg').textContent = 'บันทึก BG แล้ว: ' + m.n + ' (ใช้เป็นค่าพื้นหลังปัจจุบัน)';
+    setView('live');
+  } else {
+    S.cur = m.d; S.curName = m.n; setView('result');
+    $('pmsg').textContent = 'บันทึกแล้ว: ' + m.n;
+    const mm = $('label').value.match(/^(.*?)(\d+)$/);
+    if (mm) $('label').value = mm[1] + (parseInt(mm[2], 10) + 1);
+  }
+  loadFiles();
+}
+
+function setView(v) {
+  S.view = v;
+  $('mode').textContent = v === 'live' ? 'LIVE' : 'RESULT';
+  $('bLive').classList.toggle('sel', v === 'live');
+  refresh();
+}
+
+// ---------------- files ----------------
+async function fetchSpectrum(name) {
+  const t = await (await fetch('/api/file?n=' + encodeURIComponent(name))).text();
+  const d = [];
+  t.split('\n').forEach(l => {
+    if (!l || l[0] === '#' || l.startsWith('No')) return;
+    const c = l.split(',');
+    if (c.length >= 3) d.push(parseFloat(c[2]));
+  });
+  return d.length === NL ? d : null;
+}
+
+async function loadFiles() {
+  try {
+    const fl = await (await fetch('/api/files')).json();
+    fl.sort((a, b) => a.n < b.n ? -1 : 1);
+    S.files = fl;
+    const sel = store.get('sel', {});
+    $('files').innerHTML = fl.length ? fl.map(f => {
+      const isBg = f.n.indexOf('_BG') > 0;
+      const chk = sel[f.n] === undefined ? !isBg : sel[f.n];
+      return '<div><input type="checkbox" data-n="' + f.n + '" ' + (chk ? 'checked' : '') + '>' +
+        '<span>' + f.n + (f.n === S.bgName ? ' <b class="warn">(BG ใช้อยู่)</b>' : '') + '</span>' +
+        '<button data-v="' + f.n + '">ดู</button>' + (isBg ? '<button data-b="' + f.n + '">ใช้เป็น BG</button>' : '') +
+        '<button data-d="' + f.n + '">ลบ</button></div>';
+    }).join('') : '<div class="sub">ยังไม่มีข้อมูล</div>';
+  } catch (e) { $('files').innerHTML = '<div class="sub">โหลดรายการไม่ได้</div>'; }
+}
+
+$('files').addEventListener('click', async e => {
+  const t = e.target;
+  if (t.dataset.v) { const d = await fetchSpectrum(t.dataset.v); if (d) { S.cur = d; S.curName = t.dataset.v; setView('result'); window.scrollTo(0, 0); } }
+  else if (t.dataset.b) { const d = await fetchSpectrum(t.dataset.b); if (d) { S.bg = d; S.bgName = t.dataset.b; store.set('bg', d); store.set('bgName', S.bgName); loadFiles(); refresh(); } }
+  else if (t.dataset.d) { if (confirm('ลบ ' + t.dataset.d + ' ?')) { await fetch('/api/del?n=' + encodeURIComponent(t.dataset.d)); loadFiles(); } }
+});
+$('files').addEventListener('change', e => {
+  if (e.target.dataset.n) { const sel = store.get('sel', {}); sel[e.target.dataset.n] = e.target.checked; store.set('sel', sel); }
+});
+
+function selectedNames() { return [...document.querySelectorAll('#files input[type=checkbox]:checked')].map(x => x.dataset.n); }
+
+async function download(name, text) {
+  try {
+    const file = new File(['\ufeff' + text], name, { type: 'text/csv' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  downloadFile(name, text);
+}
+function downloadFile(name, text) {
+  const blob = new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function stamp() { const d = new Date(), z = n => String(n).padStart(2, '0'); return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '_' + z(d.getHours()) + z(d.getMinutes()); }
+
+async function loadSelected() {
+  const names = selectedNames(), out = [];
+  for (const n of names) { const d = await fetchSpectrum(n); if (d) out.push({ n, a: analyze(d, opts()) }); }
+  return out;
+}
+
+$('bExp').onclick = async () => {
+  const pts = await loadSelected();
+  if (!pts.length) return alert('เลือกจุดก่อน');
+  let t = 'No,Hz,' + pts.map(p => p.n.replace('.csv', '')).join(',') + '\n';
+  for (let i = 0; i < NL; i++) t += (i + 1) + ',' + (i * DF) + ',' + pts.map(p => p.a.L[i].toFixed(2)).join(',') + '\n';
+  download('FFT_' + stamp() + '.csv', t);
+};
+
+$('bSum').onclick = async () => {
+  const pts = await loadSelected();
+  if (!pts.length) return alert('เลือกจุดก่อน');
+  let t = 'Point,OA,FFT1_dB,FFT1_Hz,OA-Peak1,FFT2_dB,FFT2_Hz,OA-Peak2,FFT3_dB,FFT3_Hz,OA-Peak3,' +
+          'Prot1_dB,Prot1_Hz,Prot2_dB,Prot2_Hz,Prot3_dB,Prot3_Hz,CPBMax_dB,CPBMax_Hz,OA-Max,J_OA-Peak,J_Protrusion,J_OA-Max,Judge,BG,Dist_m\n';
+  pts.forEach(p => {
+    const a = p.a, r = [p.n.replace('.csv', ''), a.oa.toFixed(1)];
+    for (let k = 0; k < 3; k++) { const x = a.fftTop[k]; r.push(x ? x.db.toFixed(1) : '', x ? x.hz : '', x ? x.oaPk.toFixed(1) : ''); }
+    for (let k = 0; k < 3; k++) { const x = a.protTop[k]; r.push(x ? x.db.toFixed(1) : '', x ? x.hz : ''); }
+    r.push(a.cpbMax.db.toFixed(1), a.cpbMax.fn, a.oaMax.toFixed(1), a.oaPkOk ? 'OK' : 'NG', a.protOk ? 'OK' : 'NG', cfg.oaMaxTh > 0 ? (a.oaMaxOk ? 'OK' : 'NG') : '-', a.ng ? 'NG' : 'OK', (cfg.useBg && S.bg) ? S.bgName : '-', cfg.dist);
+    t += r.join(',') + '\n';
+  });
+  download('Summary_' + stamp() + '.csv', t);
+};
+
+$('bRef').onclick = loadFiles;
+$('bDelAll').onclick = async () => { if (confirm('ลบข้อมูลทั้งหมดในเครื่อง?')) { await fetch('/api/del?n=*'); loadFiles(); } };
+
+// ---------------- buttons & settings ----------------
+$('bLive').onclick = () => setView('live');
+$('bMeas').onclick = () => {
+  const lbl = ($('label').value || 'P').replace(/[^A-Za-z0-9_-]/g, '') || 'P';
+  send('meas:' + $('sec').value + ':' + lbl);
+};
+$('bBg').onclick = () => { if (confirm('ปิดยูนิตแล้วหรือยัง? จะวัดเสียงพื้นหลัง ' + $('sec').value + ' s')) send('bg:' + $('sec').value); };
+$('bCancel').onclick = () => { send('cancel'); $('pmsg').textContent = 'ยกเลิกแล้ว'; };
+
+function bindNum(id, key) {
+  $(id).value = cfg[key];
+  $(id).oninput = () => { const v = parseFloat($(id).value); cfg[key] = isNaN(v) ? 0 : v; if (key === 'dist' && !(cfg.dist > 0)) cfg.dist = 1; store.set('cfg', cfg); refresh(); };
+}
+bindNum('sProt', 'protTh'); bindNum('sOaPk', 'oaPkTh'); bindNum('sDist', 'dist'); bindNum('sComp', 'comp'); bindNum('sOaMax', 'oaMaxTh');
+if (!cfg.comp) $('sComp').value = '';
+$('sUseBg').checked = cfg.useBg;
+$('sUseBg').onchange = () => { cfg.useBg = $('sUseBg').checked; store.set('cfg', cfg); refresh(); };
+$('bOff').onclick = () => { const v = parseFloat($('sOff').value); if (!isNaN(v)) send('cal:' + v.toFixed(2)); };
+$('bMatch').onclick = () => {
+  const ref = parseFloat($('sRefDb').value);
+  if (isNaN(ref) || !S.live) return alert('กรอกค่าอ้างอิง และต้องมีค่า LIVE');
+  const nv = S.off + (ref - oaOf(S.live));
+  if (confirm('ตั้ง offset = ' + nv.toFixed(2) + ' dB ?')) send('cal:' + nv.toFixed(2));
+};
+window.addEventListener('resize', refresh);
+
+connect();
+loadFiles();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body></html>
