@@ -45,6 +45,16 @@ summary{font-weight:600;cursor:pointer}
 #micGate h1{margin:0;font-size:26px}#micGate p{margin:0;max-width:420px;color:#d1d5db;font-size:14px;line-height:1.5}
 #micBtn{font-size:18px;padding:14px 28px;background:#1d4ed8;color:#fff;border:0;border-radius:10px}#micErr{color:#fca5a5;font-size:13px}
 #clip{display:none;margin-top:6px;padding:6px 8px;border-radius:6px;background:#fee2e2;color:#b91c1c;font-weight:600;font-size:13px}
+.ibtn{width:26px;height:26px;padding:0;border-radius:50%;border:1.5px solid #9ca3af;background:transparent;color:#fff;font:italic 700 14px Georgia,serif;line-height:22px}
+.man{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column}
+.mbar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#111827;color:#fff}.mbar b{flex:1;font-size:16px}.mbar button{background:transparent;color:#fff;border:0;font-size:20px;padding:2px 8px}
+.mbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 14px 40px;line-height:1.6;font-size:14.5px}
+.mbody h2{font-size:18px;margin:22px 0 6px;padding-top:6px;border-top:1px solid var(--bd)}.mbody h3{font-size:15.5px;margin:16px 0 4px}
+.mbody p{margin:6px 0}.mbody ul,.mbody ol{padding-left:22px;margin:6px 0}.mbody li{margin:2px 0}
+.mbody .tw{overflow-x:auto;margin:8px 0}.mbody table{font-size:13px;margin:0;min-width:100%}.mbody th,.mbody td{text-align:left;vertical-align:top;padding:5px 6px;border-bottom:1px solid var(--bd)}
+.mbody th{background:#f9fafb;color:var(--tx);font-weight:600}.mbody pre{background:#f3f4f6;padding:8px;border-radius:6px;overflow-x:auto;font-size:12.5px}.mbody code{font-size:12.5px}
+.mtoc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}.mtoc a{font-size:12.5px;padding:4px 9px;border:1px solid var(--bd);border-radius:14px;background:#fff;color:var(--tx);cursor:pointer;text-decoration:none}
+.flow{display:grid;gap:6px;margin:10px 0}.flow div{border:1px solid var(--bd);border-left:4px solid var(--pri);border-radius:6px;padding:6px 10px;background:#fff;font-size:13.5px}.flow b{display:block}
 .micbar{position:sticky;top:38px;z-index:4;background:#1f2937;color:#d1d5db;font-size:12px;padding:4px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.micbar b{color:#fff}.micbar .warn{color:#fbbf24}
 #notice{display:none;margin:8px;padding:8px 10px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:13px;font-weight:600}
 .refrow{margin:6px 0 2px;gap:6px}.refrow select{flex:1;min-width:0;font-size:14px;padding:5px}.refrow button{padding:5px 8px;font-size:13px}.chk{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:4px}
@@ -53,8 +63,665 @@ summary{font-weight:600;cursor:pointer}
 .bars .tr{height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden}.bars .fl{height:100%;border-radius:4px}
 .chips button{padding:4px 8px;font-size:12px;margin:2px}
 </style></head><body>
-<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.1</p></div>
-<header><b>Sound Meter <span style="font-weight:400;font-size:12px;color:#9ca3af">Mobile</span></b><span id="mode" class="badge">LIVE</span><span id="conn" class="dot"></span></header>
+<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><button onclick="document.getElementById('man').style.display='flex'" style="background:transparent;color:#d1d5db;border:1px solid #4b5563">อ่านคู่มือ</button><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.2</p></div>
+<header><b>Sound Meter <span style="font-weight:400;font-size:12px;color:#9ca3af">Mobile</span></b><button id="bInfo" class="ibtn" title="คู่มือ" aria-label="คู่มือ">i</button><span id="mode" class="badge">LIVE</span><span id="conn" class="dot"></span></header>
+<div id="man" class="man" style="display:none" role="dialog" aria-label="คู่มือ"><div class="mbar"><b>คู่มือ</b><button id="bManClose" aria-label="ปิด">✕</button></div><div id="manBody" class="mbody"><!--MANUAL-START--><div class="mtoc"><a data-k="1">ภาพรวม</a><a data-k="2">เริ่มต้นใช้งาน</a><a data-k="3">Calibration</a><a data-k="4">การใช้งานในห้องแล็บ</a><a data-k="5">การใช้งานหน้างาน</a><a data-k="6">การอ่านผล</a><a data-k="7">การหาต้นเหตุ</a><a data-k="8">บันทึกและส่งผล</a><a data-k="9">ไมค์และการตั้งค่า</a><a data-k="10">ข้อจำกัดและข้อควรระวัง</a><a data-k="11">แก้ปัญหาที่พบบ่อย</a><a data-k="12">ภาคผนวก</a></div><h2 id="man-1">ภาพรวม</h2>
+<p>Sound Meter Mobile เป็นเว็บแอปวัดเสียงด้วยไมค์มือถือ ใช้ในห้องแล็บ ตรวจเสียงยูนิตเบื้องต้นตามเงื่อนไขทดสอบ และ<strong>หน้างาน</strong> หาว่าเสียงดังที่ความถี่ไหน มาจากชิ้นส่วนอะไร และดังที่ด้านไหนเมื่อยูนิตไม่ผ่านการทดสอบเสียง ใช้ได้ทั้ง Android และ iPhone ฟรี ไม่ต้องติดตั้งจาก Store</p>
+<p>ก่อนใช้งานจริง มือถือทุกเครื่องต้อง calibrate และตรวจความถูกต้องกับระบบวัดของแล็บ 1 ครั้ง (ส่วน Calibration)</p>
+<p>แอปคำนวณแบบเดียวกับรายงานห้องทดสอบ (FFT 800 lines ความละเอียด 12.5 Hz, 1/3 octave, ถ่วงน้ำหนัก A)&#32;</p>
+<p><strong>ลิงก์:</strong> <a href="https://jirayutfungklin-bot.github.io/Sound-meter/" target="_blank" rel="noopener">https://jirayutfungklin-bot.github.io/Sound-meter/</a>&#32;</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ใช้ได้</th>
+<th>ใช้ไม่ได้</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>หาความถี่ของ peak และระบุแหล่งเสียง</td>
+<td>ตัดสินผ่าน/ไม่ผ่าน spec แทนผลห้อง anechoic</td>
+</tr>
+<tr>
+<td>ตัดสิน OA−Peak, Peak Protrusion, OA−Max ตามเกณฑ์</td>
+<td>วัดเสียงต่ำกว่าราว 100 Hz ให้แม่น</td>
+</tr>
+<tr>
+<td>เทียบก่อน/หลังแก้ และยูนิตปกติ/ยูนิตที่มีปัญหา</td>
+<td>เทียบค่า OA ข้ามมือถือที่ยังไม่ได้ calibrate</td>
+</tr>
+<tr>
+<td>หาตำแหน่งต้นเสียงรอบยูนิต</td>
+<td>วิเคราะห์เสียงที่ไม่ใช่โทน เช่น เสียงฟู่ เสียงกระทบเป็นช่วง ๆ</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="man-2">เริ่มต้นใช้งาน</h2>
+<p>ติดตั้งครั้งเดียวตอนมีเน็ต หลังจากนั้นใช้หน้างานแบบไม่มีสัญญาณได้</p>
+<ol>
+<li>สแกน QR หรือเปิดลิงก์ด้วย <strong>Chrome</strong> (Android) หรือ <strong>Safari</strong> (iPhone)</li>
+<li>ติดตั้งเป็นไอคอนบนหน้าจอหลัก<ul>
+<li>Android: กด ⋮ → <strong>Add to Home screen</strong> หรือ <strong>ติดตั้งแอป</strong></li>
+<li>iPhone: กดปุ่มแชร์ → <strong>Add to Home Screen</strong></li>
+</ul>
+</li>
+<li>เปิดแอป กด <strong>แตะเพื่อเปิดไมค์</strong> แล้วกดอนุญาตไมโครโฟน</li>
+<li>ดูแถบใต้หัวแอป: บอกชื่อไมค์ที่ใช้อยู่ และบอกว่า calibrate แล้วหรือยัง ถ้าขึ้น "ยังไม่ calibrate" ให้ทำตามส่วน Calibration ก่อนใช้ค่า OA</li>
+</ol>
+<p>จุดเขียวมุมขวาบนแปลว่าไมค์กำลังทำงาน ป้าย LIVE / RESULT บอกว่ากำลังดูค่าสดหรือผลที่บันทึกไว้ หมุนจอแนวนอนได้ กราฟจะกว้างขึ้น</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ส่วนของหน้าจอ (บนลงล่าง)</th>
+<th>มีอะไร</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ผลรวม</td>
+<td>OA dB(A) ตัวใหญ่, Judgement 3 ค่า, สถานะ BG, OK/NG พร้อมปุ่ม <strong>แชร์รูปผล</strong></td>
+</tr>
+<tr>
+<td>แถบควบคุม</td>
+<td><strong>LIVE</strong>, เวลาวัด 15/30/60 s, ชื่อจุด, <strong>MEASURE</strong>, <strong>BG</strong>, CANCEL</td>
+</tr>
+<tr>
+<td>กราฟ FFT</td>
+<td>ปุ่มซูม 0–1k/2k/5k/10k, แตะหรือลากเพื่ออ่านค่า ใต้กราฟมีช่องแหล่งเสียง C/F/E/I และกราฟอ้างอิง</td>
+</tr>
+<tr>
+<td>กราฟ 1/3 octave</td>
+<td>แท่งตามแบนด์ 100 Hz – 10 kHz</td>
+</tr>
+<tr>
+<td>ตารางผล</td>
+<td>FFT Max, Peak Protrusion, CPB Max พร้อมแหล่งเสียง</td>
+</tr>
+<tr>
+<td>จุดที่บันทึก</td>
+<td>รายการผลวัด (ดู / อ้างอิง / ใช้เป็น BG / ลบ), Export, เทียบ 2 สภาวะ</td>
+</tr>
+<tr>
+<td>แผนที่จุด</td>
+<td>ผังยูนิตพร้อมระดับเสียงแต่ละจุด</td>
+</tr>
+<tr>
+<td>ตั้งค่า</td>
+<td>เกณฑ์, ระยะ, BG, เลือกไมค์, offset calibration</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="man-3">Calibration</h2>
+<p>มือถือแต่ละเครื่อง (และไมค์แต่ละตัว) ขยายสัญญาณต่างกันได้หลายสิบ dB ต้อง calibrate ที่แล็บ 1 ครั้งก่อนจะใช้ค่า OA หลังจากนั้นค่า offset จะจำไว้ในมือถือ ใช้ได้ทุกหน้างาน</p>
+<p>ค่าที่เป็นผลต่าง (OA−Peak, Peak Protrusion, OA−Max) และความถี่ของ peak ใช้ได้แม้ยังไม่ calibrate เพราะ offset หักล้างกันหมด ส่วนค่า OA ที่จะเทียบกับ spec ต้อง calibrate ก่อน</p>
+<h3>วิธี calibrate</h3>
+<ol>
+<li>วางรูไมค์มือถือ (ส่วนใหญ่อยู่ขอบล่าง) ชิดไมค์ของเครื่องวัดอ้างอิงในแล็บ หันไปทางแหล่งเสียงเดียวกัน</li>
+<li>เปิดแหล่งเสียงที่คงที่และดังพอ ประมาณ 60–80 dB(A) เช่น ยูนิตที่ทำงานคงที่ หรือลำโพงเล่น pink noise (ห้ามใช้ห้องเงียบ เพราะไมค์มือถือจะจับได้แค่เสียงรบกวนของตัวเอง)</li>
+<li>ในแอปเปิดโหมด LIVE รอ 3–5 วินาทีให้ค่านิ่ง</li>
+<li>ไปที่ <strong>ตั้งค่า</strong> กรอกค่า OA ที่เครื่องอ้างอิงอ่านได้ในช่อง <strong>เทียบเครื่องวัดอ้างอิง</strong> แล้วกด <strong>ปรับ offset ให้ตรง</strong> และยืนยัน</li>
+<li>เช็กผล: OA ในแอปต้องตรงกับเครื่องอ้างอิงภายใน ±1 dB และแถบไมค์ต้องไม่ขึ้น "ยังไม่ calibrate" แล้ว</li>
+<li>จดค่า offset ลงตารางด้านล่าง ถ้าค่าในมือถือหาย กรอกกลับที่ช่อง <strong>Offset calibration</strong> แล้วกด <strong>บันทึก offset</strong> ได้ทันที</li>
+</ol>
+<p>ถ้ายังไม่มีเครื่องวัดในแล็บ ใช้แอป NIOSH SLM บน iPhone (ตั้งเป็น dB(A)) เป็นค่าอ้างอิงชั่วคราวได้ แต่ต้อง calibrate กับเครื่องแล็บใหม่ภายหลัง แอปวัดเสียงทั่วไปบน Store ห้ามใช้เป็นค่าอ้างอิง เพราะส่วนใหญ่ไม่ได้ calibrate และไม่ได้ถ่วงน้ำหนัก A</p>
+<h3>ตรวจความถูกต้องก่อนใช้งานจริง</h3>
+<p>ทำครั้งเดียวหลัง calibrate เพื่อดูว่ามือถือเครื่องนั้นให้ผลใกล้ระบบแล็บแค่ไหน</p>
+<ol>
+<li>เลือกยูนิตที่มีผลแล็บอยู่แล้ว เดินเครื่องตามเงื่อนไขเดิม</li>
+<li>นำเข้า FFT file เป็นกราฟอ้างอิง เอาติ๊ก "เทียบรูปร่าง" ออก</li>
+<li>วางมือถือที่ตำแหน่งไมค์ Front 1 m วัด BG แล้ว MEASURE 60 s</li>
+<li>เทียบกับเกณฑ์ด้านล่าง ถ้าผ่านครบ ใช้งานจริงได้</li>
+</ol>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>เทียบ</th>
+<th>เกณฑ์ผ่าน</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ความถี่ FFT Max และ Peak Protrusion</td>
+<td>ตรงกับผลแล็บ ±12.5 Hz</td>
+</tr>
+<tr>
+<td>ผล Judgement 3 ค่า</td>
+<td>OK/NG เหมือนผลแล็บ</td>
+</tr>
+<tr>
+<td>OA</td>
+<td>ต่างจากผลแล็บไม่เกิน ±2 dB</td>
+</tr>
+<tr>
+<td>รูปร่างกราฟ 150 Hz – 5 kHz</td>
+<td>ไม่มีแถบแดงต่างจากอ้างอิงเกิน 3 dB ต่อเนื่องเป็นช่วง</td>
+</tr>
+</tbody>
+</table></div>
+<p>นอกช่วง 150 Hz – 5 kHz ต่างจากแล็บได้ตามไมค์มือถือ จดไว้ว่าเครื่องนั้นอ่านสูงหรือต่ำกว่าจริงช่วงไหน</p>
+<h3>เมื่อไรต้อง calibrate ใหม่</h3>
+<ul>
+<li>อัปเดตระบบมือถือ (Android/iOS) หรือเบราว์เซอร์ครั้งใหญ่</li>
+<li>เปลี่ยนเคสที่บังรูไมค์ หรือเปลี่ยนไมค์ (ไมค์แต่ละตัวเก็บ offset แยกกัน)</li>
+<li>เปลี่ยนเบราว์เซอร์ หรือล้างข้อมูลเบราว์เซอร์ (offset จะหาย กรอกค่าที่จดไว้กลับได้)</li>
+<li>ทุก 3–6 เดือน เอาไปวางเทียบที่แล็บสั้น ๆ ถ้าคลาดเกิน 1–2 dB ให้ปรับใหม่</li>
+</ul>
+<h3>ตารางจดค่า offset</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ผู้ใช้</th>
+<th>รุ่นมือถือ</th>
+<th>เบราว์เซอร์</th>
+<th>ไมค์</th>
+<th>Offset (dB)</th>
+<th>วันที่ calibrate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td>Chrome</td>
+<td>ไมค์ในเครื่อง</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="man-4">การใช้งานในห้องแล็บ</h2>
+<p>ในแล็บให้ตั้งมือถือที่ตำแหน่งไมค์ของห้องทดสอบ วัด BG ของห้องก่อน แล้ว MEASURE ตามเงื่อนไขทดสอบ ผลจะใกล้ระบบแล็บที่สุด</p>
+<h3>เตรียมก่อนใช้งานจริง (ครั้งแรกต่อมือถือหนึ่งเครื่อง)</h3>
+<ol>
+<li><strong>Calibrate</strong> กับเครื่องวัดของแล็บ แล้วจดค่า offset (ส่วน Calibration)</li>
+<li><strong>ตรวจความถูกต้อง</strong>เทียบผลแล็บ 1 ยูนิต (ส่วน Calibration → ตรวจความถูกต้องก่อนใช้งานจริง)</li>
+<li><strong>นำเข้าผลแล็บ </strong>ของรุ่นที่จะทดสอบไว้เป็นกราฟอ้างอิง (ได้ทั้ง FRONT และ BACK)</li>
+<li><strong>เตรียมขาตั้งมือถือ</strong> ที่ตั้งความสูงได้เท่าไมค์ของห้องทดสอบ</li>
+</ol>
+<h3>ขั้นตอนวัดในห้องแล็บ</h3>
+<ol>
+<li><strong>ตั้งมือถือ</strong>บนขาตั้งที่ตำแหน่งไมค์ตาม VKYO-780518 (ห่าง 1 m ด้านหน้าและด้านหลัง แนวกึ่งกลางยูนิต) หันขอบล่างมือถือเข้าหายูนิต ไม่บังไมค์ของระบบแล็บ</li>
+<li><strong>เช็กแถบไมค์</strong>: ใช้ไมค์ถูกตัวและ calibrate แล้ว</li>
+<li><strong>วัด BG ของห้อง</strong>: ปิดยูนิต กด <strong>BG</strong> อยู่นิ่ง ๆ จนครบเวลา วัดใหม่ทุกครั้งที่เปลี่ยนห้อง ตำแหน่ง หรือวัน</li>
+<li><strong>เปิดยูนิตตามเงื่อนไขทดสอบ</strong> รอคงที่อย่างน้อย 30 นาทีหลังเปิด หรือ 10 นาทีหลังเปลี่ยนความถี่ (VKYO-780518 ข้อ 3-2)</li>
+<li><strong>กรอกแหล่งเสียงที่รู้</strong>ใต้กราฟ FFT (Comp Hz ตามเงื่อนไข, พัดลม, ไฟเลี้ยง, carrier) และเลือกอ้างอิงให้ตรงจุด (FRONT สำหรับด้านหน้า BACK สำหรับด้านหลัง)</li>
+<li><strong>MEASURE จุด F1 แล้ว B1</strong> ใช้ 30–60 s ให้ใกล้การเฉลี่ยของแล็บ (15 s พอสำหรับเช็กเร็ว)</li>
+<li><strong>ตรวจ Judgement</strong> และแถบแดงเทียบอ้างอิง แล้วแชร์รูปผลหรือ Export</li>
+</ol>
+<p>ในห้อง anechoic เสียงของห้องเบากว่าเสียงรบกวนในตัวไมค์มือถือ ค่า BG ที่ได้จึงสูงกว่าค่า BG ในรายงานแล็บ (เช่น 8.2 dB(A)) เป็นเรื่องปกติ ยังต้องวัด BG ทุกครั้ง เพราะแอปจะหักเสียงรบกวนของไมค์ออกให้</p>
+<h2 id="man-5">การใช้งานหน้างาน</h2>
+<p>ใช้ขั้นตอนเดียวกับแล็บ ค่า offset ที่ calibrate ไว้ใช้ต่อได้เลย สิ่งที่ต่างคือ:</p>
+<ul>
+<li><strong>BG วัดที่หน้างาน ณ จุดที่จะวัด</strong> ไม่ใช้ค่าของห้องทดสอบ เสียงยูนิตควรดังกว่า BG อย่างน้อย 6 dB (ดีที่สุด ≥ 10 dB) ถ้าไม่ถึงให้เข้าใกล้ยูนิตแล้วใส่ระยะจริง</li>
+<li><strong>ใช้ LIVE เดินรอบยูนิตก่อน</strong> หาจุดที่ดังและ peak เด่น แล้วค่อย MEASURE</li>
+<li><strong>ยืนห่าง 1 m ไม่ได้</strong> ใส่ระยะจริงใน <strong>ตั้งค่า → ระยะวัดจริง</strong> แอปปรับเป็นค่าที่ 1 m ให้</li>
+<li><strong>เสียงสะท้อนจากผนังและพื้น</strong> ทำให้ OA สูงกว่าแล็บ 1–3 dB ใช้ผลหน้างานหาต้นเหตุและเปรียบเทียบ ไม่ใช้ตัดสิน spec</li>
+<li><strong>เครื่องมือหาต้นเหตุ</strong> (แผนที่จุด, เทียบ 2 สภาวะ) ใช้บ่อยที่หน้างาน ดูส่วนการหาต้นเหตุ</li>
+</ul>
+<h3>การตั้งชื่อจุด</h3>
+<p>ตั้งชื่อขึ้นต้นด้วยตัวอักษรตามตำแหน่ง แผนที่จุดจะวางค่าบนผังยูนิตให้เอง (ซ้าย/ขวา = เมื่อยืนมองด้านหน้ายูนิต) ใช้ได้เฉพาะ A–Z, 0–9, - และ _</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ตัวอักษรนำ</th>
+<th>ตำแหน่ง</th>
+<th>ตัวอย่าง</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F</td>
+<td>ด้านหน้า (Front)</td>
+<td>F1, F2</td>
+</tr>
+<tr>
+<td>B</td>
+<td>ด้านหลัง (Back)</td>
+<td>B1</td>
+</tr>
+<tr>
+<td>L</td>
+<td>ด้านซ้าย</td>
+<td>L1</td>
+</tr>
+<tr>
+<td>R</td>
+<td>ด้านขวา</td>
+<td>R1</td>
+</tr>
+<tr>
+<td>T</td>
+<td>ด้านบน</td>
+<td>T1</td>
+</tr>
+<tr>
+<td>อื่น ๆ</td>
+<td>จุดพิเศษ (แสดงเฉพาะกราฟแท่ง)</td>
+<td>PIPE1, P1</td>
+</tr>
+</tbody>
+</table></div>
+<h3>ข้อควรระวังระหว่างวัด</h3>
+<ul>
+<li>ห้ามแตะจอ พูด หรือใช้มือบังรูไมค์ระหว่าง MEASURE</li>
+<li>ถือท่าเดิมทุกจุด ระดับความสูงเดิม จะเทียบกันได้</li>
+<li>ใกล้พัดลมมีลมปะทะไมค์ ค่าความถี่ต่ำจะพุ่งผิดปกติ ให้เลี่ยงทางลมหรือใช้ฟองน้ำกันลม</li>
+<li>ขึ้นแถบแดง <strong>clip</strong> = เสียงดังเกินไมค์ ให้ถอยห่างแล้วใส่ระยะจริง</li>
+<li>เสียบหรือถอดไมค์ระหว่างวัด แอปจะยกเลิกการวัดนั้น ต้องวัดใหม่</li>
+</ul>
+<h2 id="man-6">การอ่านผล</h2>
+<p>ดู OK/NG ตัวใหญ่ก่อน ถ้า NG ให้ดู Judgement 3 ค่าใต้ตัวเลข OA ว่าตกข้อไหน แล้วดูความถี่ของ peak นั้นในตาราง ผลรวมเป็น NG ถ้าข้อใดข้อหนึ่ง NG</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ค่า</th>
+<th>คำนวณจาก</th>
+<th>เกณฑ์เริ่มต้น</th>
+<th>NG แปลว่า</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OA − Peak</td>
+<td>OA ลบ peak ที่ดังที่สุดใน FFT</td>
+<td>≥ 6 dB</td>
+<td>ความถี่เดียวดังเกือบเท่าเสียงรวม ได้ยินเป็นเสียงหึ่งหรือเสียงวี้</td>
+</tr>
+<tr>
+<td>Peak Protrusion (3Mt.)</td>
+<td>peak ลบค่าเฉลี่ยของ peak ข้างเคียง 3 ลูกซ้าย + 3 ลูกขวา</td>
+<td>≤ 15 dB (outdoor), ตั้ง 10 สำหรับ indoor</td>
+<td>มีเสียงแหลมโดดออกมาผิดปกติ (VKYO-780518 ข้อ 5-1(5))</td>
+</tr>
+<tr>
+<td>OA − Max</td>
+<td>OA ลบแบนด์ 1/3 octave ที่ดังที่สุด</td>
+<td>≥ 6 dB (ค่าตั้งต้น ยังไม่มีในเอกสารแล็บ)</td>
+<td>ย่านความถี่เดียวครอบงำเสียงรวม</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>OA dB(A)</strong> คือเสียงรวมหลังแก้ค่า BG และระยะแล้ว บรรทัด BG ใต้ Judgement บอก ΔOA (เสียงยูนิตลบเสียงพื้นหลัง) ถ้าขึ้นแดง ΔOA &lt; 6 dB แปลว่าเสียงพื้นหลังดังเกิน ผลเชื่อถือได้น้อย</p>
+<h3>ตารางใต้กราฟ</h3>
+<ul>
+<li><strong>FFT Max 1st–3rd:</strong> เสียงความถี่เดี่ยวที่ดังที่สุด 3 อันดับ พร้อม dB, Hz, OA−Peak และผล</li>
+<li><strong>Peak Protrusion 1–3:</strong> peak ที่โผล่เด่นที่สุด 3 อันดับ ไม่จำเป็นต้องดังที่สุด เช่น peak ที่ 6 kHz เบาแต่แหลมโดด หูจะจับได้</li>
+<li><strong>CPB Max:</strong> แบนด์ 1/3 octave ที่ดังที่สุด และ OA−Max</li>
+<li><strong>คอลัมน์ "แหล่ง":</strong> peak นั้นตรงกับแหล่งเสียงที่กรอกไว้หรือไม่ (ดูส่วนการหาต้นเหตุ)</li>
+</ul>
+<h3>สัญลักษณ์บนกราฟ</h3>
+<ul>
+<li>วงกลมเขียว 1–3 = FFT Max (สีแดง = NG)</li>
+<li>สามเหลี่ยมส้ม P1–P3 = Peak Protrusion (สีแดง = NG)</li>
+<li>เส้นประสี = ฮาร์โมนิกของแหล่งเสียง (ม่วง C · เขียว F · เทา E · แดง I) ซูม 0–1k ถ้าเส้นชิดกันจนมองไม่เห็น</li>
+<li>เส้นเทาทึบ = กราฟอ้างอิง แถบแดง = สูงกว่าอ้างอิง ≥ 3 dB</li>
+<li>กราฟ 1/3 octave: แท่งส้ม = CPB Max, แท่งแดง = สูงกว่าอ้างอิง ≥ 3 dB, ขีดดำ = ระดับอ้างอิง</li>
+<li>แตะหรือลากบนกราฟ FFT จะขึ้นค่า Hz, dB(A), แหล่งเสียง และค่าอ้างอิงที่ความถี่นั้น</li>
+</ul>
+<p>ในโหมด LIVE ค่าเฉลี่ยสั้นราว 1 วินาที จึงแกว่ง ใช้ผลจาก MEASURE (ป้าย RESULT) เท่านั้นในการตัดสิน</p>
+<h2 id="man-7">การหาต้นเหตุ</h2>
+<p>เมื่อเจอ peak ที่ NG ให้ดูป้ายแหล่งเสียงก่อน ถ้าไม่ตรงแหล่งไหนให้เทียบ 2 สภาวะ แล้วใช้แผนที่จุดหาตำแหน่ง ปิดท้ายด้วยการแก้แล้ววัดซ้ำที่จุดเดิม</p>
+<div class="flow"><div><b>1 ดูป้ายแหล่งเสียง</b> C / F / E / I — ตรงป้ายไหน แหล่งนั้นต้องสงสัยก่อน</div><div><b>2 ไม่ตรง (–) → เทียบ 2 สภาวะ</b> ขยับตาม Comp = คอมเพรสเซอร์ · อยู่กับที่ = เรโซแนนซ์ / ไฟเลี้ยง / อินเวอร์เตอร์ · หายไปใน B = เรโซแนนซ์บางรอบ</div><div><b>3 แผนที่จุด</b> หาด้านที่ความถี่นั้นดังที่สุด</div><div><b>4 แก้แล้ววัดซ้ำที่จุดเดิม</b> เทียบก่อน/หลังด้วยกราฟอ้างอิง</div></div>
+
+<h3>1. ป้ายแหล่งเสียง</h3>
+<p>กรอกเท่าที่รู้ในช่องใต้กราฟ FFT ช่องที่เป็น "–" คือไม่ใช้ คอลัมน์ "แหล่ง" ในตารางจะบอกว่า peak ตรงกับฮาร์โมนิกของแหล่งไหน</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ป้าย</th>
+<th>ช่องที่กรอก</th>
+<th>ความถี่ที่แอปตรวจ</th>
+<th>ตัวอย่าง</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C คอมเพรสเซอร์</td>
+<td>Comp Hz (รอบหมุนจริง)</td>
+<td>Comp Hz × 1–40</td>
+<td>41 Hz → 162.5 Hz = C4×</td>
+</tr>
+<tr>
+<td>F พัดลม</td>
+<td>rpm และจำนวนใบ</td>
+<td>BPF = rpm ÷ 60 × จำนวนใบ, × 1–10</td>
+<td>750 rpm × 3 ใบ → 37.5 Hz</td>
+</tr>
+<tr>
+<td>E ไฟเลี้ยง</td>
+<td>50 หรือ 60 Hz</td>
+<td>2 × ความถี่ไฟ × 1–20</td>
+<td>60 Hz → E1× = 120 Hz</td>
+</tr>
+<tr>
+<td>I อินเวอร์เตอร์</td>
+<td>Carrier kHz</td>
+<td>carrier × 1–3 (±37.5 Hz)</td>
+<td>6.5 kHz → 6487.5 Hz = I1×</td>
+</tr>
+</tbody>
+</table></div>
+<p>ป้าย "–" แปลว่าไม่ตรงแหล่งที่รู้ ให้สงสัยเรโซแนนซ์ท่อ แผ่นโลหะ หรือโครงสร้าง แล้วใช้การเทียบ 2 สภาวะยืนยัน เส้นประสีบนกราฟเห็นชัดสุดตอนซูม 0–1k</p>
+<h3>2. กราฟอ้างอิง</h3>
+<p>ซ้อนกราฟของยูนิตปกติหรือผลแล็บไว้บนกราฟสด แล้วแอปบอกว่าความถี่ไหนสูงกว่าปกติกี่ dB</p>
+<ol>
+<li>กด <strong>นำเข้าไฟล์</strong> แล้วเลือก (.xlsx) หรือ CSV ถ้าไฟล์มีหลายชุด เช่น FRONT/BACK แอปจะเพิ่มทุกชุดเข้ารายการให้ สลับได้ตลอดที่ช่องอ้างอิง หรือกด <strong>อ้างอิง</strong> ที่ผลวัดยูนิตปกติในรายการ</li>
+<li>เลือกอ้างอิงที่จะใช้จากช่อง <strong>อ้างอิง</strong> ใต้กราฟ (เก็บได้ 12 ชุด กด ✕ เพื่อลบ)</li>
+<li>ถ้ามือถือยังไม่ calibrate ให้ติ๊ก <strong>เทียบรูปร่าง</strong> ไว้ แอปจะปรับกราฟอ้างอิงให้ OA เท่ากัน จะเห็นแค่ความถี่ที่ผิดปกติ</li>
+<li>ดูตาราง <strong>สูงกว่าอ้างอิง</strong> ใต้กราฟ: peak ที่สูงกว่าอ้างอิง ≥ 3 dB สูงสุด 5 อันดับพร้อมป้ายแหล่งเสียง</li>
+</ol>
+<p>นำเข้า .xlsx ต้องต่อเน็ต ส่วน CSV ใช้ได้แบบออฟไลน์ ควรนำเข้าผลแล็บไว้ก่อนออกหน้างาน</p>
+<p><strong>ไฟล์ที่นำเข้าได้:</strong> Excel แบบผล FFT ใช้ได้ทันที หรือ CSV ที่มีคอลัมน์ Hz เริ่ม 0 เพิ่มทีละ 12.5 ถึง 10000 ครบ 801 แถว และคอลัมน์ dB(A) อยู่ทางขวา (เช่นไฟล์จาก Export FFT) ค่าต้องถ่วงน้ำหนัก A แล้ว ไฟล์ที่มีแต่ 1/3 octave, FFT ความละเอียดอื่น หรือ PDF ใช้ไม่ได้</p>
+<pre><code class="language-csv">No,Hz,FRONT,BACK
+1,0,-4.80,-11.67
+2,12.5,6.21,-1.81
+3,25,15.73,16.51
+</code></pre>
+<h3>3. เทียบ 2 สภาวะ</h3>
+<p>แยกว่า peak มาจากชิ้นส่วนหมุนหรือจากเรโซแนนซ์ โดยวัดจุดเดิม 2 ครั้งที่ความถี่คอมเพรสเซอร์ต่างกันอย่างน้อย 15% (เช่น 41 และ 50 Hz)</p>
+<ol>
+<li>MEASURE ที่สภาวะ A และ B ที่จุดเดิม ระยะเดิม</li>
+<li>เปิด <strong>จุดที่บันทึก → เทียบ 2 สภาวะ</strong> เลือกไฟล์ A, B และกรอก Comp Hz ของแต่ละสภาวะ</li>
+<li>กด <strong>วิเคราะห์</strong> แอปตรวจ peak เด่น (Protrusion ≥ 3 dB) 10 อันดับแรก</li>
+</ol>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ผล</th>
+<th>ความหมาย</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ขยับตาม Comp ≈n×</td>
+<td>มาจากชิ้นส่วนหมุนของคอมเพรสเซอร์ เลขคือลำดับฮาร์โมนิก</td>
+</tr>
+<tr>
+<td>อยู่กับที่</td>
+<td>เรโซแนนซ์ท่อ/แผ่น/โครงสร้าง ไฟเลี้ยง หรืออินเวอร์เตอร์</td>
+</tr>
+<tr>
+<td>ทั้งสองแบบ</td>
+<td>มี peak ทั้งที่เดิมและที่ขยับ</td>
+</tr>
+<tr>
+<td>หายไปใน B</td>
+<td>เกิดเฉพาะบางรอบ มักเป็นเรโซแนนซ์ที่ถูกกระตุ้นตอนฮาร์โมนิกตรงพอดี</td>
+</tr>
+<tr>
+<td>เกิดใหม่ใน B</td>
+<td>มีเฉพาะสภาวะ B</td>
+</tr>
+<tr>
+<td>แยกไม่ได้</td>
+<td>ความถี่ขยับน้อยกว่า 25 Hz ให้เลือก A/B ที่ต่างกันมากขึ้น</td>
+</tr>
+</tbody>
+</table></div>
+<h3>4. แผนที่จุด</h3>
+<p>ชี้ว่าความถี่ที่สนใจดังที่สุดด้านไหนของยูนิต</p>
+<ol>
+<li>MEASURE หลายจุดรอบยูนิต ตั้งชื่อตามกติกา F/B/L/R/T</li>
+<li>ติ๊กเลือกจุดในรายการ แล้วเปิด <strong>แผนที่จุด</strong></li>
+<li>กดปุ่มลัดความถี่ (จาก peak ของผลที่เปิดอยู่) หรือพิมพ์ Hz เอง เว้นว่าง = ใช้ OA</li>
+<li>อ่านผังยูนิตแบบมองจากด้านบน (สีเขียว = เบา → แดง = ดัง จุดดังสุดมีขอบดำ) และกราฟแท่งเรียงลำดับทุกจุด</li>
+</ol>
+<h2 id="man-8">บันทึกและส่งผล</h2>
+<p>ทุกปุ่มเปิดเมนูแชร์ของมือถือ ส่งเข้า LINE, อีเมล หรือ Drive ได้ทันที ถ้าเบราว์เซอร์ไม่รองรับการแชร์ ไฟล์จะดาวน์โหลดลงโฟลเดอร์ Downloads แทน</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ปุ่ม</th>
+<th>ได้อะไร</th>
+<th>ใช้เมื่อ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>แชร์รูปผล</td>
+<td>ภาพ PNG 1 หน้า: ชื่อจุด วันเวลา ไมค์, OA, Judgement 3 ค่า, กราฟ FFT และ 1/3 octave, ตาราง peak พร้อมแหล่งเสียง, ผลเทียบอ้างอิง</td>
+<td>รายงานหัวหน้าหรือทีมทันทีที่หน้างาน</td>
+</tr>
+<tr>
+<td>Export FFT</td>
+<td>CSV 801 แถว: No, Hz และคอลัมน์ dB(A) ของทุกจุดที่เลือก</td>
+<td>นำไปวางที่เซลล์ <strong>BA43</strong> ของเทมเพลต กราฟและ OK/NG ใน Excel ทำงานต่อเอง</td>
+</tr>
+<tr>
+<td>Export สรุป</td>
+<td>CSV 1 แถวต่อจุด: OA, FFT Max ×3, OA−Peak, Protrusion ×3, CPB Max, OA−Max, ผลแต่ละข้อ, BG ที่ใช้, ระยะ, แหล่งเสียง</td>
+<td>ทำตารางสรุปหลายจุดในรายงาน</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>เลือกจุดที่จะ export ด้วยเช็กบ็อกซ์ในรายการ "จุดที่บันทึก" (ไฟล์ BG ไม่ถูกติ๊กเป็นค่าเริ่มต้น)</li>
+<li>ค่าที่ export ใช้ตามการตั้งค่าตอนนั้น คือแก้ BG และระยะแล้ว ปิดการแก้ BG ก่อนถ้าต้องการค่าดิบ</li>
+<li>ไฟล์ผลวัดแต่ละจุดมีหัวไฟล์บอกเวลาวัด, จำนวนครั้งเฉลี่ย, offset, ชื่อไมค์ และวันเวลา</li>
+<li><strong>ข้อมูลเก็บในเบราว์เซอร์ของมือถือเท่านั้น</strong> ไม่ขึ้นเว็บ พื้นที่ราว 5 MB เก็บได้ประมาณ 200 จุด ควร export เก็บเป็นระยะแล้วลบที่ไม่ใช้</li>
+</ul>
+<h2 id="man-9">ไมค์และการตั้งค่า</h2>
+<p>การตั้งค่าจำไว้ในมือถือแต่ละเครื่อง ไม่ต้องตั้งใหม่ทุกครั้ง</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>รายการ</th>
+<th>ค่าเริ่มต้น</th>
+<th>หมายเหตุ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>เกณฑ์ Peak Protrusion (NG เมื่อ &gt;)</td>
+<td>15 dB</td>
+<td>outdoor ตาม VKYO-780518 สำหรับ indoor ตั้ง 10 dB</td>
+</tr>
+<tr>
+<td>เกณฑ์ OA − Peak (NG เมื่อ &lt;)</td>
+<td>6 dB</td>
+<td>ตามเทมเพลตแล็บ</td>
+</tr>
+<tr>
+<td>เกณฑ์ OA − Max (NG เมื่อ &lt;)</td>
+<td>6 dB</td>
+<td>ใส่ 0 = ไม่ตัดสินข้อนี้</td>
+</tr>
+<tr>
+<td>ระยะวัดจริง</td>
+<td>1 m</td>
+<td>แอปปรับค่าเป็นที่ 1 m ให้</td>
+</tr>
+<tr>
+<td>แก้ค่าเสียงพื้นหลัง (BG)</td>
+<td>เปิด</td>
+<td>ใช้ BG ที่วัดล่าสุด เปลี่ยนได้ด้วยปุ่ม "ใช้เป็น BG"</td>
+</tr>
+<tr>
+<td>ไมค์ที่ใช้</td>
+<td>ไมค์เริ่มต้นของมือถือ</td>
+<td>เลือกไมค์ได้เอง</td>
+</tr>
+<tr>
+<td>Offset calibration</td>
+<td>0 dB</td>
+<td>จำแยกตามไมค์แต่ละตัว</td>
+</tr>
+</tbody>
+</table></div>
+<h3>ไมค์เสริม</h3>
+<ul>
+<li>แถบใต้หัวแอปบอกชื่อไมค์ที่ใช้อยู่ตลอดเวลา เช่น "ไมค์: USB Audio Device"</li>
+<li>เสียบไมค์ใหม่ แอปขึ้นแถบเหลือง "พบไมค์ใหม่" แต่ยังไม่สลับให้ ต้องเลือกเองที่ <strong>ตั้งค่า → ไมค์ที่ใช้</strong></li>
+<li>ไมค์ที่ใช้อยู่หลุดหรือถูกถอด แอปสลับกลับไมค์เริ่มต้นเอง และยกเลิกการวัดที่ค้างอยู่</li>
+<li>ไมค์ที่เปลี่ยนไปต้อง calibrate แยก ถ้ายังไม่เคย calibrate แถบจะขึ้น "ยังไม่ calibrate"</li>
+<li>ไมค์วัดเสียงแบบ USB ที่ calibrate มาแล้วเสียบผ่าน USB-C ได้ทั้ง Android และ iPhone รุ่นใหม่ แม่นกว่าไมค์มือถือมาก และใช้เทียบข้ามมือถือได้</li>
+<li>ในตั้งค่ามีบรรทัด <strong>AGC / NS / EC</strong> ทั้งสามค่าควรเป็น off ถ้าขึ้น ON มือถือยังปรับแต่งเสียงอยู่ ค่าจะเพี้ยน</li>
+</ul>
+<h2 id="man-10">ข้อจำกัดและข้อควรระวัง</h2>
+<p>แอปนี้ใช้ตรวจเบื้องต้นและหาต้นเหตุ ไม่ใช่เครื่องวัดมาตรฐาน การตัดสินผ่าน spec ยังต้องใช้ผลจากห้องทดสอบ</p>
+<ul>
+<li><strong>เสียงสะท้อนหน้างาน:</strong> ผนังและพื้นทำให้ OA มักสูงกว่าห้อง anechoic 1–3 dB แม้ calibrate แล้ว และกราฟหยักต่างจากแล็บ</li>
+<li><strong>ไมค์มือถือตอบสนองแต่ละความถี่ไม่เท่ากัน:</strong> ต่ำกว่าราว 100–150 Hz อ่านได้ต่ำกว่าจริง ส่วนความถี่สูง (มากกว่าราว 5 kHz) เพี้ยนตามรุ่น offset ค่าเดียวแก้ไม่ได้ ให้เทียบด้วยมือถือเครื่องเดิมที่จุดเดิมจะแม่นที่สุด</li>
+<li><strong>iPhone:</strong> ผ่าน Safari อาจยังมีการปรับแต่งเสียงบางส่วน ควรเช็กกับเครื่องแล็บก่อนใช้</li>
+<li><strong>เสียงเบามาก:</strong> ไมค์มีเสียงรบกวนในตัว ในห้องเงียบค่าที่อ่านได้อาจเป็นเสียงรบกวนของไมค์เอง ไม่ใช่เสียงจริง</li>
+<li><strong>เสียงพื้นหลังดัง:</strong> ถ้าเสียงยูนิตต่างจาก BG น้อยกว่า 6 dB ค่าที่แก้แล้วก็ยังเชื่อถือได้น้อย ให้เข้าใกล้ยูนิตขึ้นแล้วใส่ระยะจริง</li>
+<li><strong>เสียงที่ไม่ใช่โทน:</strong> เสียงฟู่ของสารทำความเย็น เสียงกระทบเป็นช่วง ๆ วิเคราะห์จาก FFT เฉลี่ยได้ยาก ต้องอาศัยการฟังร่วมด้วย</li>
+<li><strong>Comp Hz ต้องเป็นรอบหมุนจริง:</strong> ถ้าตัวเลขที่รู้เป็นความถี่ไฟขับมอเตอร์ที่ไม่เท่ารอบหมุน ป้าย C จะคลาด</li>
+<li><strong>เกณฑ์ OA − Max 6 dB</strong> เป็นค่าที่ตั้งต้นไว้ ยังไม่มีในเอกสารแล็บ และแอปไม่ได้คำนวณ Condition First Crest 3dB เพราะไม่ทราบสูตร</li>
+<li><strong>ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น:</strong> ล้างข้อมูลเบราว์เซอร์ ผลวัดและ offset จะหาย ควร export เก็บและจด offset ไว้</li>
+</ul>
+<h2 id="man-11">แก้ปัญหาที่พบบ่อย</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>อาการ</th>
+<th>สาเหตุ</th>
+<th>วิธีแก้</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ค่าสูงผิดปกติ เช่น ออฟฟิศเงียบอ่านได้ 90 dB(A)</td>
+<td>ยังไม่ calibrate มือถือขยายสัญญาณมากกว่าค่าเริ่มต้น</td>
+<td>calibrate ตามส่วน Calibration</td>
+</tr>
+<tr>
+<td>พูดหรือตบมือแล้วค่าแทบไม่เปลี่ยน</td>
+<td>มือถือยังเปิด AGC</td>
+<td>ดูบรรทัด AGC ในตั้งค่า ใช้ Chrome หรือใช้ไมค์เสริม</td>
+</tr>
+<tr>
+<td>เปิดไมค์ไม่ได้</td>
+<td>ไม่ได้อนุญาตไมโครโฟน หรือไม่ได้เปิดผ่านลิงก์ https</td>
+<td>อนุญาตไมค์ในการตั้งค่าเบราว์เซอร์ แล้วเปิดจากลิงก์หรือ QR</td>
+</tr>
+<tr>
+<td>ไม่เห็นเส้นฮาร์โมนิก</td>
+<td>ที่สเกล 0–10k เส้นชิดกันเกินไป</td>
+<td>กดซูม 0–1k</td>
+</tr>
+<tr>
+<td>BG ขึ้นแดง ΔOA &lt; 6 dB</td>
+<td>วัด BG ตอนยูนิตยังทำงาน หรือพื้นที่เสียงดัง</td>
+<td>วัด BG ใหม่ตอนปิดยูนิต หรือเข้าใกล้ยูนิตแล้วใส่ระยะจริง</td>
+</tr>
+<tr>
+<td>ขึ้นแถบแดง clip</td>
+<td>เสียงดังเกินไมค์</td>
+<td>ถอยห่าง แล้วใส่ระยะจริงในตั้งค่า</td>
+</tr>
+<tr>
+<td>นำเข้าไฟล์ Excel ไม่ได้</td>
+<td>ไม่มีเน็ต (ตัวอ่าน Excel โหลดจากเน็ต)</td>
+<td>ต่อเน็ต หรือบันทึกเป็น CSV ก่อน</td>
+</tr>
+<tr>
+<td>นำเข้าแล้วขึ้น "ไม่พบข้อมูล FFT 801 lines"</td>
+<td>ไฟล์ไม่มีคอลัมน์ Hz 0–10000 ทุก 12.5 Hz</td>
+<td>ใช้ไฟล์รูปแบบห้องทดสอบ หรือไฟล์ Export FFT</td>
+</tr>
+<tr>
+<td>กดแชร์แล้วไม่เด้งเมนูแชร์</td>
+<td>เบราว์เซอร์ไม่รองรับการแชร์ไฟล์</td>
+<td>ไฟล์ถูกดาวน์โหลดแทน ดูใน Downloads</td>
+</tr>
+<tr>
+<td>หมุนจอไม่ได้</td>
+<td>ไอคอนที่ติดตั้งก่อนอัปเดต หรือปิดหมุนจออัตโนมัติ</td>
+<td>เปิด Auto rotate หรือลบไอคอนแล้วติดตั้งใหม่</td>
+</tr>
+<tr>
+<td>แอปไม่อัปเดตเป็นเวอร์ชันใหม่</td>
+<td>ยังใช้ไฟล์ที่เก็บไว้ในเครื่อง</td>
+<td>เปิดแอปตอนมีเน็ต ปิดแล้วเปิดใหม่</td>
+</tr>
+<tr>
+<td>ผลวัดหรือ offset หาย</td>
+<td>ล้างข้อมูลเบราว์เซอร์ หรือเปลี่ยนเบราว์เซอร์</td>
+<td>กรอก offset ที่จดไว้ ผลวัดที่หายกู้คืนไม่ได้</td>
+</tr>
+<tr>
+<td>การวัดถูกยกเลิกเอง</td>
+<td>ไมค์เปลี่ยนระหว่างวัด (ตั้งใจไว้ กันข้อมูลปนกัน)</td>
+<td>เช็กแถบไมค์แล้ววัดใหม่</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="man-12">ภาคผนวก</h2>
+<h3>วิธีคำนวณ</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>รายการ</th>
+<th>ค่า</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>อัตราสุ่ม</td>
+<td>51.2 kHz (ถ้าเบราว์เซอร์ไม่รองรับ แปลงจาก 44.1/48 kHz)</td>
+</tr>
+<tr>
+<td>FFT</td>
+<td>4,096 จุด, Hanning window, overlap 50 % → 800 lines × 12.5 Hz, 0–10 kHz</td>
+</tr>
+<tr>
+<td>ถ่วงน้ำหนัก</td>
+<td>A-weighting ตาม IEC 61672</td>
+</tr>
+<tr>
+<td>LIVE</td>
+<td>เฉลี่ยแบบ exponential ราว 1 s</td>
+</tr>
+<tr>
+<td>MEASURE</td>
+<td>เฉลี่ยเชิงเส้น 25 frame/s (15 s = 375 ครั้ง แล็บใช้ 1,097 ครั้ง)</td>
+</tr>
+<tr>
+<td>Peak</td>
+<td>local maximum ของ FFT line</td>
+</tr>
+<tr>
+<td>1/3 octave</td>
+<td>100 Hz – 10 kHz รวมพลังงานจาก FFT lines หัก ENBW 1.5</td>
+</tr>
+<tr>
+<td>แก้ค่า BG (ราย line)</td>
+<td>ΔL ≥ 10 dB ไม่แก้ · 6–10 dB ลบพลังงาน · &lt; 6 dB แก้สูงสุด 1.26 dB และเตือน</td>
+</tr>
+<tr>
+<td>ปรับระยะ</td>
+<td>SPL(1 m) = SPL(r) + 20·log(r)</td>
+</tr>
+</tbody>
+</table></div>
+<p>OA (Lᵢ = ระดับแต่ละ line, 1.5 = ENBW ของ Hanning):</p>
+<pre><code>OA = 10·log10( (1/1.5) · Σ 10^(Lᵢ/10) ),  i = 0…800
+</code></pre>
+<p>Peak Protrusion (3Mt.) ของ peak ลำดับที่ j (P = ระดับของ peak เรียงตามความถี่):</p>
+<pre><code>Δ3Mt = Pⱼ − (1/6) · Σₖ₌₁…₃ ( Pⱼ₋ₖ + Pⱼ₊ₖ )
+</code></pre>
+<h3>สำหรับผู้ดูแลแอป</h3>
+<ul>
+<li>เว็บอยู่บน GitHub Pages: repo <code>jirayutfungklin-bot/Sound-meter</code> (branch main, root) เวอร์ชันปัจจุบัน v1.1</li>
+<li>เอกสารอ้างอิง: VKYO-780518-E Test instructions for noise, เอกสารอบรม MCP-26T535 (ISO 3744), รายงาน Sound measurement</li>
+</ul><p class="sub">คู่มือฉบับในแอป อัปเดต 2026-11-26</p><!--MANUAL-END--></div></div>
 <div id="micBar" class="micbar" style="display:none"></div>
 <div id="notice"></div>
 
@@ -1244,6 +1911,16 @@ $('bShare').onclick = async () => {
     setTimeout(() => { URL.revokeObjectURL(u); el.remove(); }, 1000);
   }, 'image/png');
 };
+
+// ================= in-app manual =================
+function openManual(k) {
+  $('man').style.display = 'flex';
+  if (k) { const h = document.getElementById('man-' + k); if (h) h.scrollIntoView(); }
+}
+$('bInfo').onclick = () => openManual();
+$('bManClose').onclick = () => { $('man').style.display = 'none'; };
+$('manBody').addEventListener('click', e => { const k = e.target.dataset && e.target.dataset.k; if (k && e.target.closest('.mtoc')) openManual(k); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('man').style.display = 'none'; });
 
 connect();
 loadFiles();
