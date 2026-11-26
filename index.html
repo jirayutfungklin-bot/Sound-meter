@@ -63,7 +63,7 @@ summary{font-weight:600;cursor:pointer}
 .bars .tr{height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden}.bars .fl{height:100%;border-radius:4px}
 .chips button{padding:4px 8px;font-size:12px;margin:2px}
 </style></head><body>
-<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><button onclick="document.getElementById('man').style.display='flex'" style="background:transparent;color:#d1d5db;border:1px solid #4b5563">อ่านคู่มือ</button><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.2</p></div>
+<div id="micGate"><h1>Sound Meter</h1><p>วัดเสียงหน้างานด้วยไมค์มือถือ · FFT 800 lines · 1/3 octave · Peak Protrusion 3Mt. · OK/NG</p><button id="micBtn">แตะเพื่อเปิดไมค์</button><div id="micErr"></div><button onclick="document.getElementById('man').style.display='flex'" style="background:transparent;color:#d1d5db;border:1px solid #4b5563">อ่านคู่มือ</button><p style="font-size:12px">ใช้สำหรับตรวจสอบเบื้องต้นหน้างาน ไม่ใช่เครื่องวัดมาตรฐาน · ควร calibrate เทียบเครื่องวัดอ้างอิงหนึ่งครั้งต่อมือถือหนึ่งเครื่อง · ข้อมูลเก็บในมือถือเท่านั้น</p><p style="font-size:11px;color:#6b7280">v1.0</p></div>
 <header><b>Sound Meter <span style="font-weight:400;font-size:12px;color:#9ca3af">Mobile</span></b><button id="bInfo" class="ibtn" title="คู่มือ" aria-label="คู่มือ">i</button><span id="mode" class="badge">LIVE</span><span id="conn" class="dot"></span></header>
 <div id="man" class="man" style="display:none" role="dialog" aria-label="คู่มือ"><div class="mbar"><b>คู่มือ</b><button id="bManClose" aria-label="ปิด">✕</button></div><div id="manBody" class="mbody"><!--MANUAL-START--><div class="mtoc"><a data-k="1">ภาพรวม</a><a data-k="2">เริ่มต้นใช้งาน</a><a data-k="3">Calibration</a><a data-k="4">การใช้งานในห้องแล็บ</a><a data-k="5">การใช้งานหน้างาน</a><a data-k="6">การอ่านผล</a><a data-k="7">การหาต้นเหตุ</a><a data-k="8">บันทึกและส่งผล</a><a data-k="9">ไมค์และการตั้งค่า</a><a data-k="10">ข้อจำกัดและข้อควรระวัง</a><a data-k="11">แก้ปัญหาที่พบบ่อย</a><a data-k="12">ภาคผนวก</a></div><h2 id="man-1">ภาพรวม</h2>
 <p>Sound Meter Mobile เป็นเว็บแอปวัดเสียงด้วยไมค์มือถือ ใช้ในห้องแล็บ ตรวจเสียงยูนิตเบื้องต้นตามเงื่อนไขทดสอบ และ<strong>หน้างาน</strong> หาว่าเสียงดังที่ความถี่ไหน มาจากชิ้นส่วนอะไร และดังที่ด้านไหนเมื่อยูนิตไม่ผ่านการทดสอบเสียง ใช้ได้ทั้ง Android และ iPhone ฟรี ไม่ต้องติดตั้งจาก Store</p>
@@ -719,7 +719,7 @@ summary{font-weight:600;cursor:pointer}
 </code></pre>
 <h3>สำหรับผู้ดูแลแอป</h3>
 <ul>
-<li>เว็บอยู่บน GitHub Pages: repo <code>jirayutfungklin-bot/Sound-meter</code> (branch main, root) เวอร์ชันปัจจุบัน v1.1</li>
+<li>เว็บอยู่บน GitHub Pages: repo <code>jirayutfungklin-bot/Sound-meter</code> (branch main, root) เวอร์ชันปัจจุบัน v1.0</li>
 <li>เอกสารอ้างอิง: VKYO-780518-E Test instructions for noise, เอกสารอบรม MCP-26T535 (ISO 3744), รายงาน Sound measurement</li>
 </ul><p class="sub">คู่มือฉบับในแอป อัปเดต 2026-11-26</p><!--MANUAL-END--></div></div>
 <div id="micBar" class="micbar" style="display:none"></div>
