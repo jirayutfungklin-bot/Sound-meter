@@ -20,7 +20,8 @@ header b{flex:1}.dot{width:10px;height:10px;border-radius:50%;background:#ef4444
 .big{font-size:40px;font-weight:700;line-height:1}.judge{margin-left:auto;font-size:22px;font-weight:700;padding:6px 14px;border-radius:8px;background:#e5e7eb}
 .judge.ok{background:#dcfce7;color:var(--ok)}.judge.ng{background:#fee2e2;color:var(--ng)}
 button,select,input{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:#fff}
-button{cursor:pointer}button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}button.sel{background:#111827;color:#fff}
+button{cursor:pointer}button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+#ctl{gap:5px;flex-wrap:nowrap}#ctl>*{flex:0 1 auto;min-width:0}#ctl button{padding:7px 9px}#ctl #bMeas{flex:1 1 auto}button.sel{background:#111827;color:#fff}
 button:disabled{opacity:.45}
 .prog{height:6px;background:#e5e7eb;border-radius:3px;margin-top:8px;overflow:hidden}#pbar{height:100%;width:0;background:var(--pri)}
 canvas{width:100%;display:block;touch-action:none}
@@ -58,30 +59,34 @@ summary{font-weight:600;cursor:pointer}
 <div id="notice"></div>
 
 <section class="card">
-  <div class="row"><div><div class="lbl">OA dB(A)</div><div id="oa" class="big">--</div></div><div id="judge" class="judge">--</div></div>
+  <div class="row"><div><div class="lbl">OA dB(A)</div><div id="oa" class="big">--</div></div><div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div id="judge" class="judge" style="margin-left:0">--</div><button id="bShare" style="padding:5px 10px;font-size:13px">แชร์รูปผล</button></div></div>
   <table class="jt" id="judgeTbl"></table>
   <div id="title" class="sub"></div>
   <div id="bgInfo" class="sub"></div>
   <div id="clip">⚠ เสียงดังเกินไมค์ (clip) — ถอยห่างออกมา ค่าที่ได้ไม่ถูกต้อง</div>
-  <div class="row" style="margin-top:8px"><button id="bShare">แชร์รูปผล</button><span class="sub" style="margin:0">ส่งภาพสรุป (กราฟ + ผลตัดสิน) เข้า LINE / อีเมล</span></div>
 </section>
 
 <section class="card">
-  <div class="row wrap">
+  <div class="row" id="ctl">
     <button id="bLive" class="sel">LIVE</button>
-    <select id="sec"><option value="15">15 s</option><option value="30">30 s</option><option value="60">60 s</option></select>
-    <input id="label" value="P1" size="5" maxlength="16">
+    <select id="sec" style="padding:7px 4px"><option value="15">15 s</option><option value="30">30 s</option><option value="60">60 s</option></select>
+    <input id="label" value="P1" size="4" maxlength="16" style="width:56px">
     <button id="bMeas" class="pri">MEASURE</button>
     <button id="bBg">BG</button>
     <button id="bCancel" style="display:none">CANCEL</button>
   </div>
   <div class="prog"><div id="pbar"></div></div>
-  <div id="pmsg" class="sub">LIVE = ดูค่าสด (เฉลี่ย ~1 s) · MEASURE = เฉลี่ยเชิงเส้นแล้วบันทึก · BG = วัดเสียงพื้นหลัง (ปิดเครื่อง)</div>
+  <div id="pmsg" class="sub"></div>
 </section>
 
 <section class="card">
   <div class="lbl">FFT · 800 lines · 12.5 Hz · dB(A)</div>
   <div class="seg" id="zoom"><button data-z="1000">0–1k</button><button data-z="2000">0–2k</button><button data-z="5000">0–5k</button><button data-z="10000">0–10k</button></div>
+  <canvas id="cF"></canvas>
+  <div id="cur" class="sub">แตะ/ลากบนกราฟเพื่ออ่านค่า</div>
+  <div id="refInfo" class="sub"></div>
+  <div id="refTbl"></div>
+  <div style="border-top:1px solid var(--bd);margin-top:10px;padding-top:6px">
   <div class="lbl" style="margin-top:4px">แหล่งเสียงที่รู้ (ใส่เท่าที่รู้ · ว่าง = ไม่ใช้)</div>
   <div class="src">
     <label><span style="color:#7c3aed">C · Comp Hz</span><input id="sComp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="–"></label>
@@ -94,10 +99,7 @@ summary{font-weight:600;cursor:pointer}
   <div class="row wrap refrow"><span class="lbl">อ้างอิง</span><select id="refSel"></select><button id="bRefDel" title="ลบอ้างอิงนี้">✕</button><button id="bRefImp">นำเข้าไฟล์</button><input type="file" id="refFile" accept=".csv,.xlsx,.xls,text/csv" style="display:none"></div>
   <label class="chk"><input type="checkbox" id="refNorm"> เทียบรูปร่าง (ปรับระดับอ้างอิงให้ OA เท่ากัน — ใช้เมื่อยังไม่ได้ calibrate)</label>
   <div id="refPick"></div>
-  <canvas id="cF"></canvas>
-  <div id="cur" class="sub">แตะ/ลากบนกราฟเพื่ออ่านค่า</div>
-  <div id="refInfo" class="sub"></div>
-  <div id="refTbl"></div>
+  </div>
 </section>
 
 <section class="card">
@@ -586,7 +588,7 @@ function render(raw) {
   const j = $('judge');
   j.textContent = a.ng ? 'NG' : 'OK';
   j.className = 'judge ' + (a.ng ? 'ng' : 'ok');
-  $('title').textContent = S.view === 'live' ? 'LIVE (เฉลี่ย ~1 s) — ค่า Protrusion แกว่งได้ ใช้ MEASURE เพื่อตัดสิน' : 'ผลวัด: ' + S.curName;
+  $('title').textContent = S.view === 'live' ? 'LIVE · เฉลี่ย ~1 s (ใช้ MEASURE ตัดสิน)' : 'ผลวัด: ' + S.curName;
 
   let bi = '';
   if (cfg.useBg && S.bg) {
